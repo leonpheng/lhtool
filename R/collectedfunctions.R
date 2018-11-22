@@ -15,8 +15,8 @@ findiff<-function(dat1,dat2){
   for(i in 1:length(names(dat1))){
     nm1<-paste(nm1,names(dat1)[i],sep="/")
     dum1a<-paste(dum1a,dat1[,names(dat1)[i]],sep="/")
-    nm2<-paste(nm2,names(dat1)[i],sep="/")
-    dum2a<-paste(dum2a,dat2[,names(dat1)[i]],sep="/")
+    nm2<-paste(nm2,names(dat2)[i],sep="/")
+    dum2a<-paste(dum2a,dat2[,names(dat2)[i]],sep="/")
   }
   a<-setdiff(dum1a,dum2a)
   b<-setdiff(dum2a,dum1a)
