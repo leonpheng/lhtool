@@ -20,8 +20,8 @@ findiff<-function(dat1,dat2){
   }
   a<-setdiff(dum1a,dum2a)
   b<-setdiff(dum2a,dum1a)
-  out<-data.frame(nm1=a);names(out)<-nm1
-  out1<-data.frame(nm2=b);names(out1)<-nm2
+  out<-data.frame(nm1=unique(a));names(out)<-nm1
+  out1<-data.frame(nm2=unique(b));names(out1)<-nm2
   row1<-data.frame(N1=length(dum1a),N2=length(dum2a))
   out3<-lhcbind(out,out1)
   out3<-lhcbind(out3,row1)
