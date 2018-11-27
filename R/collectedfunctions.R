@@ -1,3 +1,33 @@
+#' Reshape wide
+#'
+#' @param data Dataset
+#' @param wide.data Name of vector containing data to be dcasted
+#'  @param wide.vector Name of vector to be reshape as heading 
+#' @param data Dataset 
+#' @keywords lhwide()
+#' @export
+#' @examples
+#' lhwide()
+lhwide<-function(data,wide.data,wide.vector){
+  b <- function(x) {}
+  x1<-paste(paste(names(data)[!names(data)%in%c(wide.data,wide.vector)],collapse="+"),"~",wide.vector)
+  body(b) <- parse(text = x1)
+  z1<-dcast(data,b())}
+
+#' Reshape long
+#'
+#' @param data Dataset
+#' @param long.vector List of vector to be melted
+#'
+#' @keywords lhlong()
+#' @export
+#' @examples
+#' lhlong()
+lhlong<-function(data,long.vector){
+  z1<-melt(data,names(data)[!names(data)%in%long.vector])
+}
+
+
 #' find different values between two datasets
 #'
 #' @param dat1,dat2 Dataset 1 and 2" 
