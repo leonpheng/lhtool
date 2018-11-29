@@ -2,10 +2,11 @@
 % Please edit documentation in R/collectedfunctions.R
 \name{nca.cal}
 \alias{nca.cal}
-\title{Derive Common NCA parameters using single profile}
+\title{Derive Common NCA parameters using single and multiple profiles}
 \usage{
 nca.cal(data, n_lambda = 3, id = "id", time = "time", dv = "dv",
-  ss = "ss", partialAUC = NULL, partialConc = NULL)
+  dosing.regimen = "ss", label.for.sd = NULL, label.for.ss = NULL,
+  tau = NULL, dose = NULL, partialAUC = NULL, partialConc = NULL)
 }
 \arguments{
 \item{data}{datset or data frame (ex:data=PKdatat)}
@@ -18,16 +19,26 @@ nca.cal(data, n_lambda = 3, id = "id", time = "time", dv = "dv",
 
 \item{dv}{Concentration}
 
-\item{ss}{Steady state flags. Note that ss will be used only for identification purpose only.}
+\item{dosing.regimen}{PK profile profile flag (ex: single, sd, md ,ss).As vector or numeric. Note that only one prefile per dose is to be analyzed.}
+
+\item{label.for.sd}{Label to identify sd profile used in dosing.regimen. Need to compute the effective half-life}
+
+\item{label.for.ss}{Label to identify ss profile used in dosing.regimen. Need to compute the effective half-life}
+
+\item{tau}{Dose interval. As vector or numeric.}
+
+\item{dose}{Dose administered. As vector or numeric. Required to estimate CL and Vss}
 
 \item{partialAUC}{Time interval for partial AUC. Ex: c(0,6,0,12,6,12) for AUC0-6, AUC0-12 and AUC6-12}
 
 \item{partialConc}{Concentration at particular time (Ex:c(1,4) for concentration after 1 and 4 h)}
 }
 \description{
-nca.analysis(data,n_lambda=3,id,time,dv,ss,partialAUC="no")
+nca.cal()
 }
 \examples{
-nca.analysis(data=dat,id="NMID",by=c("study"))
+p<-nca.cal(data=data, n_lambda = 3, id = "id", time = "time", dv = "dv", 
+tau="ii",dose="dose",dosing.regimen = "ss",label.for.sd="single", partialAUC = NULL, partialConc = NULL)
+
 }
-\keyword{nca.analysis}
+\keyword{nca.cal}
