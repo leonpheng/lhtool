@@ -2141,7 +2141,7 @@ nca.cal<-function (data, n_lambda = 3, id = "id", time = "time", dv = "dv",
     EHL$Rc <- with(EHL, AUCtau/AUCsd_tau)
     tau1 <- nodup(single, c("id", "tau"), "var")
     EHL <- join(EHL, tau1)
-    EHL$EHL <- with(EHL, log(2) * tau/(log(Rc - 1)/Rc))
+    EHL$EHL <- with(EHL, log(2) * tau/(log(Rc/(Rc - 1))))
     test <- join(test, EHL[, c("id", "tau", "EHL")], type = "left")
   } 
   if("AUCinf_obs"%in%names(test)){
@@ -2153,7 +2153,7 @@ nca.cal<-function (data, n_lambda = 3, id = "id", time = "time", dv = "dv",
     test$idss <- paste(test$id, test$ss, sep = "-")
     test <- join(test, aucsdtau, type = "left")
     test$Rc <- with(test, AUCinf_obs/AUCsd_tau)
-    test$EHL <- with(test, log(2) * tau/(log(Rc - 1)/Rc))
+    test$EHL <- with(test, log(2) * tau/(log(Rc/(Rc - 1))))
     test<-join(test,nodup(dat,c("idss","tau"),"var"))
   }else{if(!c("tau")%in%names(dat)){
     test$EHL<-"AUCinf or TAU is missing" 
