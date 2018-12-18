@@ -5,8 +5,9 @@
 \title{Derive Common NCA parameters using single and multiple profiles}
 \usage{
 nca.cal(data, n_lambda = 3, id = "id", time = "time", dv = "dv",
-  dosing.regimen = "ss", label.for.sd = NULL, label.for.ss = NULL,
-  tau = NULL, dose = NULL, partialAUC = NULL, partialConc = NULL)
+  sort.by = NULL, ss.variable = "ss", sd_label_in_ss = NULL,
+  ss_label_in_ss = NULL, tau = NULL, dose = NULL,
+  partialAUC = NULL, partialConc = NULL)
 }
 \arguments{
 \item{data}{datset or data frame (ex:data=PKdatat)}
@@ -19,12 +20,6 @@ nca.cal(data, n_lambda = 3, id = "id", time = "time", dv = "dv",
 
 \item{dv}{Concentration}
 
-\item{dosing.regimen}{PK profile profile flag (ex: single, sd, md ,ss).As vector or numeric. Note that only one prefile per dose is to be analyzed.}
-
-\item{label.for.sd}{Label to identify sd profile used in dosing.regimen. Need to compute the effective half-life}
-
-\item{label.for.ss}{Label to identify ss profile used in dosing.regimen. Need to compute the effective half-life}
-
 \item{tau}{Dose interval. As vector or numeric.}
 
 \item{dose}{Dose administered. As vector or numeric. Required to estimate CL and Vss}
@@ -32,6 +27,12 @@ nca.cal(data, n_lambda = 3, id = "id", time = "time", dv = "dv",
 \item{partialAUC}{Time interval for partial AUC. Ex: c(0,6,0,12,6,12) for AUC0-6, AUC0-12 and AUC6-12}
 
 \item{partialConc}{Concentration at particular time (Ex:c(1,4) for concentration after 1 and 4 h)}
+
+\item{dosing.regimen}{PK profile profile flag (ex: single, sd, md ,ss).As vector or numeric. Note that only one prefile per dose is to be analyzed.}
+
+\item{label.for.sd}{Label to identify sd profile used in dosing.regimen. Need to compute the effective half-life}
+
+\item{label.for.ss}{Label to identify ss profile used in dosing.regimen. Need to compute the effective half-life}
 }
 \description{
 nca.cal()

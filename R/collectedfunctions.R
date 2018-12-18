@@ -1931,9 +1931,8 @@ AUC<-function (data, time = "TIME", id = "ID", dv = "DV")
 #' p<-nca.cal(data=data, n_lambda = 3, id = "id", time = "time", dv = "dv", 
 #' tau="ii",dose="dose",dosing.regimen = "ss",label.for.sd="single", partialAUC = NULL, partialConc = NULL)
 #' 
-nca.cal<-function (data, n_lambda = 3, id = "id", time = "time", dv = "dv", 
-                   dosing.regimen = "ss", label.for.sd = NULL, label.for.ss = NULL, 
-                   tau = NULL, dose = NULL, partialAUC = NULL, partialConc = NULL) 
+
+nca.cal<-function (data, n_lambda = 3, id = "id", time = "time", dv = "dv",sort.by=NULL, ss.variable = "ss", sd_label_in_ss = NULL, ss_label_in_ss = NULL,tau = NULL, dose = NULL, partialAUC = NULL, partialConc = NULL) 
 {
   dat <- data
   dat$time1 <- dat[, time]
@@ -1941,10 +1940,10 @@ nca.cal<-function (data, n_lambda = 3, id = "id", time = "time", dv = "dv",
   dat[, "tad"] <- NULL
   dat$id <- dat[, id]
   dat$dv <- dat[, dv]
-  if (is.numeric(dosing.regimen)) {
-    dat$ss <- dosing.regimen
+  if (is.numeric(ss.variable)) {
+    dat$ss <- ss.variable
   } else {
-    dat$ss <- dat[, dosing.regimen]
+    dat$ss <- dat[,ss.variable]
   }
   if (is.numeric(dose)) {
     dat$dose <- dose
@@ -1957,18 +1956,21 @@ nca.cal<-function (data, n_lambda = 3, id = "id", time = "time", dv = "dv",
   }
   if (is.numeric(tau) & !is.null(tau)) {
     dat$tau <- tau
-  }else {
+  }else{
     if (!is.null(tau)) {
       dat$tau <- dat[, tau]
-    }  else {
-      dat
-    }
+    }else {dat}
   }
   dat$idss <- paste(dat$id, dat$ss, sep = "-")
+  if(!is.null(sort.by)){
+    for(i in sort.by){
+      dat$idss <- paste(dat$idss, dat[,i], sep = "-")  
+    }}else{dat$idss<-dat$idss}
+  
   dat <- dat[order(dat$idss, dat$time), ]
   dat <- addvar(dat, "idss", "time", "min(x)", "yes", "tad")
   dat$time <- dat$time - dat$tad
-  idss <- nodup(dat, c("idss", "id", "ss", "dose"), "var")
+  idss <- nodup(dat, c("idss", "id", "ss", "dose",sort.by), "var")
   dat$dvtm <- dat$dv * dat$time
   datauc <- dat
   auclast <- AUC(datauc, time = time, id = "idss", dv = dv)
@@ -2018,7 +2020,7 @@ nca.cal<-function (data, n_lambda = 3, id = "id", time = "time", dv = "dv",
     Cpart <- join(Cpart, idss)
     Cpart$idss <- NULL
     Cpart
-  } else {
+  }else {
     Cpart <- NULL
   }
   if (n_lambda != "no") {
@@ -2032,21 +2034,19 @@ nca.cal<-function (data, n_lambda = 3, id = "id", time = "time", dv = "dv",
     str(dat1)
     dat1[, c("idss", "time", "dv")]
     test1 <- ddply(dat1[, c("idss", "time", "dv")], .(idss), 
-                   summarize, interc = lm(log(dv) ~ time)$coef[1], Lambda = lm(log(dv) ~ 
-                                                                                 time)$coef[2] * -1, R2 = summary(lm(log(dv) ~ 
-                                                                                                                       time))$r.squared, HL = (log(2)/lm(log(dv) ~ time)$coef[2]) * 
-                     -1, that = max(time))
+                   summarize, interc = lm(log(dv) ~ time)$coef[1], Lambda = lm(log(dv) ~ time)$coef[2] * -1, R2 = summary(lm(log(dv) ~ time))$r.squared, HL = (log(2)/lm(log(dv) ~ time)$coef[2]) *  -1, that = max(time))
     test1$n_lambda <- n_lambda
     test1$Clast_hat <- with(test1, exp(-Lambda * that + interc))
     test1a <- ddply(dat1[, c("idss", "time", "dvtm")], .(idss), 
                     summarize, intercc = lm(log(dvtm) ~ time)$coef[1], 
-                    Lambdac = lm(log(dvtm) ~ time)$coef[2] * -1, R2c = summary(lm(log(dvtm) ~ 
-                                                                                    time))$r.squared, HLc = (log(2)/lm(log(dvtm) ~ 
-                                                                                                                         time)$coef[2]) * -1, thatc = max(time))
+                    Lambdac = lm(log(dvtm) ~ time)$coef[2] * -1, 
+                    R2c = summary(lm(log(dvtm) ~ time))$r.squared, 
+                    HLc = (log(2)/lm(log(dvtm) ~ time)$coef[2]) * -1, 
+                    thatc = max(time))
     test1a$n_lambdac <- n_lambda
     test1a$Clast_hatc <- with(test1a, exp(-Lambdac * thatc + 
                                             intercc))
-  } else {
+  }else {
     test1 <- NULL
   }
   if (TRUE %in% c(test1$HL < 0)) {
@@ -2077,13 +2077,12 @@ nca.cal<-function (data, n_lambda = 3, id = "id", time = "time", dv = "dv",
     test$MRTlast <- test$AUMClast/test$AUClast
     test$MRTobs <- test$AUMCinf_obs/test$AUCinf_obs
     test$MRTpred <- test$AUMCinf_pred/test$AUCinf_pred
-  } else {
+  }else {
     test$MRTlast <- test$AUMClast/test$AUClast
   }
   if (!is.null(Cpart)) {
     test <- plyr::join(test, Cpart)
   }
-  test
   if (!is.null(aucpart)) {
     test <- plyr::join(test, aucpart)
   }
@@ -2099,37 +2098,39 @@ nca.cal<-function (data, n_lambda = 3, id = "id", time = "time", dv = "dv",
     test <- test[, !names(test) %in% c("Lambdac", "R2c", 
                                        "HLc", "thatc", "n_lambdac", "Clast_hatc", "intercc")]
     names(test)[names(test) == "HL"] <- "HL_Lambda_z"
-  } else {
+  }else {
     test$CLobs <- "Dose required"
     test$CLpred <- "Dose required"
     test$Vss_obs <- "Dose required"
     test$Vss_pred <- "Dose required"
   }
-  if (!is.null(label.for.ss) | !is.null(label.for.sd)) {
-    if (!is.null(label.for.ss) & !is.null(label.for.sd)) {
+  if (!is.null(ss_label_in_ss) | !is.null(sd_label_in_ss)) {
+    if (!is.null(ss_label_in_ss) & !is.null(sd_label_in_ss)) {
       head(dat)
-      ss1 <- dat[dat$ss == label.for.ss & dat$time <= dat$tau, 
+      ss1 <- dat[dat$ss == ss_label_in_ss & dat$time <= dat$tau, 
                  ]
-      single <- dat[dat$ss == label.for.sd & dat$time <= 
+      single <- dat[dat$ss == sd_label_in_ss & dat$time <= 
                       dat$tau, ]
     }
-    if (!is.null(label.for.sd) & is.null(label.for.ss)) {
-      ss1 <- dat[dat$ss != label.for.sd & dat$time <= dat$tau, 
+    if (!is.null(sd_label_in_ss) & is.null(ss_label_in_ss)) {
+      ss1 <- dat[dat$ss != sd_label_in_ss & dat$time <= dat$tau, 
                  ]
-      single <- dat[dat$ss == label.for.sd & dat$time <= 
+      single <- dat[dat$ss == sd_label_in_ss & dat$time <= 
                       dat$tau, ]
     }
-    if (is.null(label.for.sd) & !is.null(label.for.ss)) {
-      ss1 <- dat[dat$ss == label.for.ss & dat$time <= dat$tau, 
+    if (is.null(sd_label_in_ss) & !is.null(ss_label_in_ss)) {
+      ss1 <- dat[dat$ss == ss_label_in_ss & dat$time <= dat$tau, 
                  ]
-      single <- dat[dat$ss != label.for.ss & dat$time <= 
+      single <- dat[dat$ss != ss_label_in_ss & dat$time <= 
                       dat$tau, ]
     }
+    
     auctau <- AUC(ss1, time = "time", id = "idss", dv = "dv")
     names(auctau) <- c("idss", "AUCtau")
     aucsdtau <- AUC(single, time = "time", id = "idss", dv = "dv")
     names(aucsdtau) <- c("idss", "AUCsd_tau")
-    test$idss <- paste(test$id, test$ss, sep = "-")
+    test<-join(test,idss,type="left")
+    #test$idss <- paste(test$id, test$ss, sep = "-")
     test <- join(test, aucsdtau, type = "left")
     test <- join(test, auctau, type = "left")
     ident <- nodup(test, c("id", "idss"), "var")
@@ -2143,10 +2144,9 @@ nca.cal<-function (data, n_lambda = 3, id = "id", time = "time", dv = "dv",
     EHL <- join(EHL, tau1)
     EHL$EHL <- with(EHL, log(2) * tau/(log(Rc/(Rc - 1))))
     test <- join(test, EHL[, c("id", "tau", "EHL")], type = "left")
-  } 
-  if("AUCinf_obs"%in%names(test)){
-    single <- dat[dat$time <= 
-                    dat$tau, ]
+  }
+  if ("AUCinf_obs" %in% names(test)) {
+    single <- dat[dat$time <= dat$tau, ]
     aucsdtau <- AUC(single, time = "time", id = "idss", dv = "dv")
     names(aucsdtau) <- c("idss", "AUCsd_tau")
     head(test)
@@ -2154,14 +2154,15 @@ nca.cal<-function (data, n_lambda = 3, id = "id", time = "time", dv = "dv",
     test <- join(test, aucsdtau, type = "left")
     test$Rc <- with(test, AUCinf_obs/AUCsd_tau)
     test$EHL <- with(test, log(2) * tau/(log(Rc/(Rc - 1))))
-    test<-join(test,nodup(dat,c("idss","tau"),"var"))
-  }else{if(!c("tau")%in%names(dat)){
-    test$EHL<-"AUCinf or TAU is missing" 
+    test <- join(test, nodup(dat, c("idss", "tau"), "var"))
+  } else {
+    if (!c("tau") %in% names(dat)) {
+      test$EHL <- "AUCinf or TAU is missing"
+    }
   }
-    
-  }
-  keep<-names(test)[!names(test)%in% c("Lambdac", "R2c", "HLc", 
-                                       "thatc", "n_lambdac", "Clast_hatc", "intercc", "idss","Rc")]
+  keep <- names(test)[!names(test) %in% c("Lambdac", "R2c", 
+                                          "HLc", "thatc", "n_lambdac", "Clast_hatc", "intercc", 
+                                          "idss", "Rc")]
   test <- test[, keep]
 }
 ###########################
