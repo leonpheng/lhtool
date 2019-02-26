@@ -1,3 +1,44 @@
+#' merge and make long to wide data frame
+#'
+#' @param dat1,dat2 Data frame 1 and 2 with long vectors and values. Note: no duplicated sorting vector allowed 
+#' @param long.vector Vector containing wide variable names
+#' @param value Column containing values associated with each wide variable. 
+#' @keywords lhmerge_long_data()
+#' @export
+#' @examples
+lhmerge_long_data<-function(dat1,dat2,long.vector1,long.vector2,value1,value2){
+  names(dat1)[names(dat1)==long.vector1]<-"x";names(dat1)[names(dat1)==value1]<-"y"
+  names(dat2)[names(dat2)==long.vector2]<-"x";names(dat2)[names(dat2)==value2]<-"y"
+  dat2$x[dat2$x==dat1$x]<-paste0(dat2$x[dat2$x==dat1$x],"dat2")
+  datall<-lhrbind(dat1,dat2)
+  head(datall)
+  dup1(datall,c("STUDYID", "USUBJID", "AVISIT",  "date","x"),"all")
+  output<-lhwide(datall,"y","x")
+}
+
+#' merge wide data frames
+#'
+#' @param dat1,dat2 Data frame 1 and 2 with long vectors and values. Note: no duplicated sorting vector allowed 
+#' @param by1,by2 Vectors containing matched values from each data frames. 
+#' @keywords lhmerge_long_data()
+#' @export
+#' @examples
+lhmerge_wide_data<-function(dat1,dat2,by1,by2){
+  d1<-chclass(dat1,names(dat1),"char");d2<-chclass(dat2,names(dat2),"char")
+  d1<-lhlong(d1,names(d1)[!names(d1)%in%by1]);d2<-lhlong(d2,names(d2)[!names(d2)%in%by2])
+  head(d1)
+  d1<-chclass(d1,names(d1),"char");d2<-chclass(d2,names(d2),"char")
+  d2$variable<-as.character(d2$variable);d1$variable<-as.character(d1$variable)
+  d2$variable[d2$variable%in%d1$variable]<-paste0(d2$variable[d2$variable%in%d1$variable],"d2")
+  datall<-lhrbind(d1,d2)
+  head(datall)
+  unique(datall$variable)
+  test<-nodup(datall,c(by1,by2,"variable"),"all")
+  test<-test[order(test$USUBJID,as.Date(test$date)),]
+  output<-lhwide(test,"value","variable")
+}
+
+
 #' Reshape wide
 #'
 #' @param data Dataset
@@ -37,7 +78,7 @@ lhlong<-function(data,long.vector){
 #' findiff()
 
 findiff<-function(dat1,dat2){
-  stopifnot(nrow(dat1)==nrow(dat2))
+ # stopifnot(nrow(dat1)==nrow(dat2))
   dum1a<-""
   nm1<-"dat1"
   dum2a<-""
