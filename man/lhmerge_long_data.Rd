@@ -4,7 +4,8 @@
 \alias{lhmerge_long_data}
 \title{merge and make long to wide data frame}
 \usage{
-lhmerge_long_data(dat1, dat2, long.vector1, long.vector2, value1, value2)
+lhmerge_long_data(dat1 = dd1, dat2 = dd2, long.vector1 = "PARAMCD",
+  long.vector2 = "PARAMCD", value1 = "AVAL", value2 = "CHG")
 }
 \arguments{
 \item{dat1, dat2}{Data frame 1 and 2 with long vectors and values. Note: no duplicated sorting vector allowed}

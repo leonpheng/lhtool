@@ -6,14 +6,20 @@
 #' @keywords lhmerge_long_data()
 #' @export
 #' @examples
-lhmerge_long_data<-function(dat1,dat2,long.vector1,long.vector2,value1,value2){
-  names(dat1)[names(dat1)==long.vector1]<-"x";names(dat1)[names(dat1)==value1]<-"y"
-  names(dat2)[names(dat2)==long.vector2]<-"x";names(dat2)[names(dat2)==value2]<-"y"
-  dat2$x[dat2$x==dat1$x]<-paste0(dat2$x[dat2$x==dat1$x],"dat2")
-  datall<-lhrbind(dat1,dat2)
+lhmerge_long_data<-function (dat1=dd1, dat2=dd2, long.vector1="PARAMCD", long.vector2="PARAMCD", value1="AVAL", value2="CHG") 
+{
+  names(dat1)[names(dat1) == long.vector1] <- "x"
+  names(dat1)[names(dat1) == value1] <- "y"
+  names(dat2)[names(dat2) == long.vector2] <- "x"
+  names(dat2)[names(dat2) == value2] <- "y"
+  dat2$x[dat2$x == dat1$x] <- paste0(dat2$x[dat2$x == dat1$x], 
+                                     "dat2")
+  datall <- lhrbind(dat1, dat2)
   head(datall)
-  dup1(datall,c("STUDYID", "USUBJID", "AVISIT",  "date","x"),"all")
-  output<-lhwide(datall,"y","x")
+  if(nrow(dup1(datall, names(datall)[!names(datall)%in%"y"],"all"))>0){
+    print("duplicated data")
+    output<-dup1(datall, names(datall)[!names(datall)%in%"y"],"all")
+  }else{output <- lhwide(datall, "y", "x")}
 }
 
 #' merge wide data frames
