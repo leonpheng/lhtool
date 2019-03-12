@@ -690,52 +690,65 @@ blk.locf2<-function (x, id, na.action = c("fill", "carry.back"), fill = NA)
 #' @examples
 #' tad_addl()
 
-tad_addl<-function(data,id,ii,addl,rtime,evid,dose.expand="no"){
-  data<-chclass(data,c(rtime,evid,addl,ii),"num")
-  nam<-names(data)
-  data<-data[order(data[,id],data[,rtime]),]
-  data$x<-NA
-  data$x[data[,evid]==1]<-data[data[,evid]==1,rtime]
-  data$y<-NA
-  data$y[data[,evid]==1]<-ifelse(is.na(data[data[,evid]==1,ii]),0,data[data[,evid]==1,ii])
-  data$z<-NA
-  data$z[data[,evid]==1]<-ifelse(is.na(data[data[,evid]==1,addl]),0,data[data[,evid]==1,addl])
-  data$x<-blk.locf(data$x,asID(data[,id]),na.action ="carry.back", fill = NA)
-  data$y<-blk.locf(data$y,asID(data[,id]),na.action ="carry.back", fill = NA)
-  data$z<-blk.locf(data$z,asID(data[,id]),na.action ="carry.back", fill = NA)
-  data$TAD<-NA
-  data$TAD[data[,evid]==1]<-0
-  data$TAD[data[,evid]!=1&data$z==0]<-data[data[,evid]!=1&data$z==0,rtime]-data[data[,evid]!=1&data$z==0,"x"]
-  data$zz<- with(data,(x+(y*z)))
-  data$zzz<-round((data$zz-data[,rtime])/data$y,0)*-1
-  data$zzzz<-ifelse(data$zzz<0,data$zzz*data$y+data$zz,data$zz)
-  data$zy<-ifelse(data$y==0,x,
-                  ifelse(data[,rtime]<data$zzzz,data$zzzz-data$y,data$zzzz))
-  data$TAD[data[,evid]!=1]<-data[data[,evid]!=1,rtime]-data[data[,evid]!=1,"zy"]
-  data<-data[,c(nam,"TAD")]
-  #function(data,id,ii,addl,rtime,evid)
-  #first, order the data by ID and time
-  if(dose.expand=="yes"){
-    datp<-data[data$evid==0,]
-    dat0<-data[data$evid==1,]
-    datr<-NULL
-    for(i in 1:nrow(dat0)){
-      dat1<-dat0[i,]
-      dat2<-as.data.frame(matrix(ncol=ncol(dat1),nrow=dat1[,addl]))
-      names(dat2)<-names(dat1)
-      dat2[,names(dat2)]<-dat1
-      dat2$dum<-seq(0,nrow(dat2)-1,1)
-      dat2[,rtime]<-dat2[,rtime]+(dat2[,ii]*dat2$dum)
-      dat2$dum<-NULL
-      datr<-rbind(datr,dat2)
+tad_addl<-function (data, id, ii, addl, rtime, evid, dose.expand = "no") 
+{
+  data <- chclass(data, c(rtime, evid, addl, ii), "num")
+  data[,"TAD"]<-data[,"tad"]<-NULL
+  nam <- names(data)
+  data <- data[order(data[, id], data[, rtime]), ]
+  data$x <- NA
+  data$x[data[, evid] == 1] <- data[data[, evid] == 1, rtime]
+  data$y <- NA
+  data$y[data[, evid] == 1] <- ifelse(is.na(data[data[, evid] == 
+                                                   1, ii]), 0, data[data[, evid] == 1, ii])
+  data$z <- NA
+  data$z[data[, evid] == 1] <- ifelse(is.na(data[data[, evid] == 
+                                                   1, addl]), 0, data[data[, evid] == 1, addl])
+  data$x <- blk.locf(data$x, asID(data[, id]), na.action = "carry.back", 
+                     fill = NA)
+  data$y <- blk.locf(data$y, asID(data[, id]), na.action = "carry.back", 
+                     fill = NA)
+  data$z <- blk.locf(data$z, asID(data[, id]), na.action = "carry.back", 
+                     fill = NA)
+  data[,"TAD"] <-NA
+  data$TAD[data[, evid] == 1] <- 0
+  data$TAD[data[, evid] != 1 & data$z == 0] <- data[data[, 
+                                                         evid] != 1 & data$z == 0, rtime] - data[data[, evid] != 
+                                                                                                   1 & data$z == 0, "x"]
+  data$zz <- with(data, (x + (y * z)))
+  data$zzz <- round((data$zz - data[, rtime])/data$y, 0) * 
+    -1
+  data$zzzz <- ifelse(data$zzz < 0, data$zzz * data$y + data$zz, 
+                      data$zz)
+  data$zy <- ifelse(data$y == 0, data$x, ifelse(data[, rtime] < 
+                                                  data$zzzz, data$zzzz - data$y, data$zzzz))
+  data$TAD[data[, evid] != 1] <- data[data[, evid] != 1, rtime] - 
+    data[data[, evid] != 1, "zy"]
+  data <- data[, c(nam, "TAD")]
+  if (dose.expand == "yes") {
+    datp <- data[data[,evid] == 0|data[,addl]==0, ]
+    dat0 <- data[data[,evid] == 1&data[,addl]>0, ]
+    datr <- NULL
+    for (i in 1:nrow(dat0)) {
+      dat1 <- dat0[i, ]
+      dat2 <- as.data.frame(matrix(ncol = ncol(dat1), nrow = dat1[, 
+                                                                  addl]))
+      names(dat2) <- names(dat1)
+      dat2[, names(dat2)] <- dat1
+      dat2$dum <- seq(0, nrow(dat2) - 1, 1)
+      dat2[, rtime] <- dat2[, rtime] + (dat2[, ii] * dat2$dum)
+      dat2$dum <- NULL
+      datr <- rbind(datr, dat2)
     }
-    datr$addl<-datr$ii<-0
-    datp<-rbind(datp,datr)
-    datp<-datp[order(datp[,id],datp[,rtime]),]
+    datr[,addl] <- datr[,ii] <- 0
+    setdiff(names(datr),names(datp))
+    datp <- rbind(datp, datr)
+    datp <- datp[order(datp[, id], datp[, rtime]), ]
     datp
-  }else{data}}
-
-
+  } else {
+    data
+  }
+}
 
 
 ###########
