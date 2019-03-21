@@ -1,3 +1,24 @@
+#' mutate variable names
+#'
+#' @param data Data frame 1 and 2 with long vectors and values. Note: no duplicated sorting vector allowed 
+#' @param mutate Vector to be mutated ex. "xxx=yyy" for renaming xxx as yyy
+#' @keywords lhmutate()
+#' @export
+#' @examples
+lhmutate<-function(data=v,mutate){
+  keep<-sub("=.*","",mutate)%in%names(v)
+  imp<-sub(".*=","",mutate)[keep]
+  bimp<-sub("=.*","",mutate)[keep]
+  print(c("Not found:",sub("=.*","",mutate)[!sub("=.*","",mutate)%in%names(v)]))
+  
+  for(i in 1:length(bimp)){
+    names(data)[names(data)==bimp[i]]<-imp[i]
+  }
+  data
+}
+
+
+
 #' merge and make long to wide data frame
 #'
 #' @param dat1,dat2 Data frame 1 and 2 with long vectors and values. Note: no duplicated sorting vector allowed 
