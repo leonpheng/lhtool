@@ -4,7 +4,7 @@
 \alias{lhmutate}
 \title{mutate variable names}
 \usage{
-lhmutate(data = v, mutate)
+lhmutate(data, mutate)
 }
 \arguments{
 \item{data}{Data frame 1 and 2 with long vectors and values. Note: no duplicated sorting vector allowed}

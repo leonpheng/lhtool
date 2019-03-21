@@ -5,11 +5,11 @@
 #' @keywords lhmutate()
 #' @export
 #' @examples
-lhmutate<-function(data=v,mutate){
-  keep<-sub("=.*","",mutate)%in%names(v)
+lhmutate<-function(data,mutate){
+  keep<-sub("=.*","",mutate)%in%names(data)
   imp<-sub(".*=","",mutate)[keep]
   bimp<-sub("=.*","",mutate)[keep]
-  print(c("Not found:",sub("=.*","",mutate)[!sub("=.*","",mutate)%in%names(v)]))
+  print(c("Not found:",sub("=.*","",mutate)[!sub("=.*","",mutate)%in%names(data)]))
   
   for(i in 1:length(bimp)){
     names(data)[names(data)==bimp[i]]<-imp[i]
