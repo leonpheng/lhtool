@@ -1,3 +1,28 @@
+#' Relabel variable and factor
+#'
+#' @param data Data frame 1 and 2 with long vectors and values. Note: no duplicated sorting vector allowed 
+#' @param var c("varname","label1=label2") "xxx=yyy" for renaming xxx to yyy
+#' @keywords lhrelabel()
+#' @export
+#' @examples
+lhrelabel<-function(data,var,kfactor=T){
+  vvc1<-var[1]
+  data<-chclass(data,vvc1,"char")
+  diff<-c(NA,".","")
+  data[data[,vvc1]%in%diff,vvc1]<-"missing"
+  if(length(var)>1){
+    df<-sub("=.*","",var[2:length(var)])
+    df1<-sub(".*=","",var[2:length(var)])
+  }else{df<-unique(data[,vvc1]);df1<-df}
+  diff2<-setdiff(data[,vvc1],df)
+  data[,vvc1]<-factor(data[,vvc1],levels=c(df,diff2,"missing"),labels=c(df1,diff2,"missing"))
+  if(kfactor){
+    data<-data
+  }else{data<-chaclass(data,vvc1,"char")}
+  data
+}
+
+
 #' mutate variable names
 #'
 #' @param data Data frame 1 and 2 with long vectors and values. Note: no duplicated sorting vector allowed 
