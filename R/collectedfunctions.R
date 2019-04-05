@@ -1,27 +1,3 @@
-#' Relabel variable and factor
-#'
-#' @param data Data frame 1 and 2 with long vectors and values. Note: no duplicated sorting vector allowed 
-#' @param var c("varname","label1=label2") "xxx=yyy" for renaming xxx to yyy
-#' @keywords lhrelabel()
-#' @export
-#' @examples
-lhrelabel<-function(data,var,kfactor=T){
-  vvc1<-var[1]
-  data<-chclass(data,vvc1,"char")
-  diff<-c(NA,".","")
-  data[data[,vvc1]%in%diff,vvc1]<-"missing"
-  if(length(var)>1){
-    df<-sub("=.*","",var[2:length(var)])
-    df1<-sub(".*=","",var[2:length(var)])
-  }else{df<-unique(data[,vvc1]);df1<-df}
-  diff2<-setdiff(data[,vvc1],df)
-  data[,vvc1]<-factor(data[,vvc1],levels=c(df,diff2,"missing"),labels=c(df1,diff2,"missing"))
-  if(kfactor){
-    data<-data
-  }else{data<-chaclass(data,vvc1,"char")}
-  data
-}
-
 
 #' mutate variable names
 #'
@@ -738,19 +714,30 @@ m4$cum<-m4$cum1<- m4$good<-m4$good1<-m4$good2<-m4$good3<-NULL
 #' @export
 #' @examples
 #' reflag(dat,var="SEX",c("M","F"),c("Male","Female"),"SEXCH"))
-reflag<-function(dat,var,orignal.flag,new.flag,newvar=NULL,to.factor=F){
-  dat[,"var"]<-0
-  for(i in 1:length(orignal.flag)){
-    dat$var[dat[,var]==orignal.flag[i]]<-new.flag[i]
-  }
-  if(is.null(newvar)){dat[,var]<-dat$var
-  }else{dat[,newvar]<-dat$var}
-  print(nodup(dat,c("var",var),"var"))
-  dat$var<-NULL
-  if(to.factor&is.null(newvar)){
-  dat[,var]<-factor(dat[,var],level=new.flag)}
-  if(to.factor&!is.null(newvar)){
-    dat[,newvar]<-factor(dat[,newvar],level=new.flag)}
+reflag<-function (dat, var, orignal.flag, new.flag=NULL,newvar=NULL,to.factor=T,missing=c("",".","NA",NA)) 
+{
+  if(is.null(new.flag)){
+    new.flag=orignal.flag
+  }else{new.flag}
+  forgot<-setdiff(dat[,var],orignal.flag)
+  forgot<-forgot[!forgot%in%missing]
+  print(paste("forgot:",forgot))
+  stopifnot(length(forgot)==0)
+  dat[,var]<-as.character(dat[,var])
+  dat[dat[,var]%in%missing,var]<-"missing or unknown"
+  orignal.flag<-as.character(orignal.flag)
+  new.flag<-as.character(new.flag)
+  dat[,var]<-as.character(dat[,var])
+  if(!is.null(newvar)){
+    dat[,newvar]<-factor(dat[,var],levels=c(orignal.flag,"missing or unknown"),
+                         labels=c(new.flag,"missing or unknown"))
+    if(to.factor==F){
+      dat[,newvar]<-as.character(dat[,newvar])
+    }}else{dat[,var]<-factor(dat[,var],levels=c(orignal.flag,"missing or unknown"),
+                             labels=c(new.flag,"missing or unknown"))
+    if(to.factor==F){
+      dat[,var]<-as.character(dat[,var])
+    }}
   dat
 }
 #-------------------------

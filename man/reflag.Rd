@@ -4,7 +4,8 @@
 \alias{reflag}
 \title{Reflag variables}
 \usage{
-reflag(dat, var, orignal.flag, new.flag, newvar = NULL, to.factor = F)
+reflag(dat, var, orignal.flag, new.flag = NULL, newvar = NULL,
+  to.factor = T, missing = c("", ".", "NA", NA))
 }
 \arguments{
 \item{dat}{data frame}
