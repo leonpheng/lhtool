@@ -1116,23 +1116,29 @@ tadRT<-function (data, id, date, time, EVID, tz = "UTC")
 #' @export
 #' @examples
 #' locf2()
-locf2<-function(data,by,var,locb=T){
-  locf <-
-    function(x){
-      good <- !is.na(x)
-      positions <- seq(length(x))
-      good.positions <- good * positions
-      last.good.position <- cummax(good.positions)
-      last.good.position[last.good.position==0] <- NA
-      x[last.good.position]
-    }
-if(locb){
-data[,"dum"]<-unlist(tapply(data[,var],data[,by],locf)) # Forward
-data[,var]<-rev(locf(rev(data[,"dum"])))
-data[,"dum"]<-NULL
-}else{data[,var]<-unlist(tapply(data[,var],data[,by],locf))
-  data}
-  data}
+locf2<-function (data, by, var, locb = T) 
+{
+  locf <- function(x) {
+    good <- !is.na(x)
+    positions <- seq(length(x))
+    good.positions <- good * positions
+    last.good.position <- cummax(good.positions)
+    last.good.position[last.good.position == 0] <- NA
+    x[last.good.position]
+  }
+  data$dumy<-seq(1,nrow(data))
+  data[, var] <- unlist(tapply(data[, var], data[, by], 
+                               locf))
+  
+  if (locb) {
+    data <- data[order(data[,by],rev(data$dumy)),]
+    data[, var] <- unlist(tapply(data[, var], data[, by], 
+                                 locf))
+    data <- data[order(data[,by],data$dumy),]
+  }
+  data$dumy<-NULL
+  data
+}
 
 
 ########
