@@ -604,24 +604,25 @@ blk.locf2<-function (x, id, na.action = c("fill", "carry.back"), fill = NA)
 #' @examples
 #' tad_addl()
 
-tad_addl<-function (data, id, ii, addl, rtime, evid, dose.expand = "no") 
+tad_addl<-function (data=df, id="usubjid", ii="ii", addl="addl", rtime="rtime", evid="evid", dose.expand = "yes") 
 {
   data <- chclass(data, c(rtime, evid, addl, ii), "num")
+  data[,addl][is.na(data[,addl])]<-0
+  data[,ii][is.na(data[,ii])]<-0
   data[, "TAD"] <- data[, "tad"] <- NULL
   nam <- names(data)
   data <- data[order(data[, id], data[, rtime]), ]
-  
-  dose<-data[data[,evid]==1,]
-  dose[,"TAD"]<-0
-  datp <- data[data[, evid] == 0 , ]
+  dose <- data[data[, evid] == 1, ]
+  dose[, "TAD"] <- 0
+  datp <- data[data[, evid] != 1, ]
   dat0 <- data[data[, evid] == 1, ]
-  
   datr <- NULL
+  
   for (i in 1:nrow(dat0)) {
     dat1 <- dat0[i, ]
-    if(dat1[,addl]==0){
-      dat2<-dat1
-    }else{
+    if (dat1[, addl] == 0) {
+      dat2 <- dat1
+    }  else {
       dat2 <- as.data.frame(matrix(ncol = ncol(dat1), nrow = dat1[, 
                                                                   addl]))
       names(dat2) <- names(dat1)
@@ -630,32 +631,33 @@ tad_addl<-function (data, id, ii, addl, rtime, evid, dose.expand = "no")
       dat2[, rtime] <- dat2[, rtime] + (dat2[, ii] * dat2$dum)
       dat2$dum <- NULL
     }
-    datr <- rbind(datr,dat2)
+    datr <- rbind(datr, dat2)
   }
-  dup1(datr,names(datr),"all")
-  datr<-nodup(datr,names(datr),"all")
+  dup1(datr, names(datr), "all")
+  datr <- nodup(datr, names(datr), "all")
   datr[, addl] <- datr[, ii] <- 0
   setdiff(names(datr), names(datp))
-  datr$loc1<-datr[, rtime]
-  datr$dose<-"yes"
-  datp$loc1<-NA
-  datp$dose<-"no"
+  datr$loc1 <- datr[, rtime]
+  datr$lhdose <- "yes"
+  datp$loc1 <- NA
+  datp$lhdose <- "no"
   datp1 <- rbind(datp, datr)
   datp1 <- datp1[order(datp1[, id], datp1[, rtime]), ]
   head(datp1)
-  datp1<-locf2(datp1,id,"loc1")
-  datp1$TAD<-datp1[,rtime]-datp1$loc1
-  datp1$TAD[datp1$TAD<0]<-0
+  datp1 <- locf2(datp1, id, "loc1")
+  datp1$TAD <- datp1[, rtime] - datp1$loc1
+  datp1$TAD[datp1$TAD < 0] <- 0
   range(datp1$TAD)
   
   if (dose.expand != "yes") {
-    d1<-datp1[datp1$dose=="no",]
-    d1$loc1<-d1$dose<-NULL
-    data<-rbind(d1,dose)
-    data<-dose[order(dose[, id], dose[, rtime]), ]
-  }else {
-    data<-datp1[,!names(datp1)%in%c("loc1","dose")]
+    d1 <- datp1[datp1$lhdose == "no", ]
+    d1$loc1 <- d1$lhdose <- NULL
+    data <- rbind(d1, dose)
+    data <- data[order(data[, id], data[, rtime]), ]
+  } else {
+    data <- datp1[, !names(datp1) %in% c("loc1", "lhdose")]
   }
+  data
 }
 
 

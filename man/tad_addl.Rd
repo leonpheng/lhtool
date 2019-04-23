@@ -4,7 +4,8 @@
 \alias{tad_addl}
 \title{TAD from ADDL}
 \usage{
-tad_addl(data, id, ii, addl, rtime, evid, dose.expand = "no")
+tad_addl(data = df, id = "usubjid", ii = "ii", addl = "addl",
+  rtime = "rtime", evid = "evid", dose.expand = "yes")
 }
 \arguments{
 \item{data}{data frame}
