@@ -1399,6 +1399,7 @@ bround<-function(data,var,rtype="sigfig",dec=3){
 #'
 #' internal use.
 #' @examples
+#' @export
 #' geom()
 #'
 
@@ -1410,6 +1411,7 @@ geom <- function(x) {
 #'
 #' internal use.
 #' @examples
+#' @export 
 #' geocv()
 #'
 geocv <- function(x) {
@@ -1420,6 +1422,7 @@ geocv <- function(x) {
 #'
 #' internal use.
 #' @examples
+#' @export
 #' cv()
 #'
 cv <- function(x) {
@@ -1438,6 +1441,7 @@ cv <- function(x) {
 #' se Table function
 #'
 #' internal use.
+#' @export
 #' @examples
 #' se()
 #'
@@ -1445,7 +1449,8 @@ se<-function(x){sd(x,na.rm=TRUE)/(length(x))^0.5}
 
 #' cilow Table function
 #'
-#' internal use.
+#' internal use
+#' @export
 #' @examples
 #' cilow()
 #'
@@ -1454,6 +1459,7 @@ cilow<-function(x){mean(x,na.rm=TRUE)-((sd(x,na.rm=TRUE)/(length(x))^0.5)*qt(0.9
 #' ciup Table function
 #'
 #' internal use.
+#' @export
 #' @examples
 #' ciup()
 #'
@@ -1462,6 +1468,7 @@ ciup<-function(x){mean(x,na.rm=TRUE)+((sd(x,na.rm=TRUE)/(length(x))^0.5)*qt(0.97
 #' nmiss Table function
 #'
 #' internal use.
+#' @export
 #' @examples
 #' nmiss()
 #'
@@ -1485,6 +1492,7 @@ nmiss<-function(x){length(x[is.na(x)])}
 #' conti Table function
 #'
 #' internal use.
+#' @export
 #' @examples
 #' conti()
 #'

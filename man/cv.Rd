@@ -9,7 +9,3 @@ cv(x)
 \description{
 internal use.
 }
-\examples{
-cv()
-
-}

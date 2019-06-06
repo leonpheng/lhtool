@@ -9,7 +9,3 @@ geom(x)
 \description{
 internal use.
 }
-\examples{
-geom()
-
-}

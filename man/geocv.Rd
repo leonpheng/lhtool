@@ -9,7 +9,3 @@ geocv(x)
 \description{
 internal use.
 }
-\examples{
-geocv()
-
-}

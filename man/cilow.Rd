@@ -7,7 +7,7 @@
 cilow(x)
 }
 \description{
-internal use.
+internal use
 }
 \examples{
 cilow()
