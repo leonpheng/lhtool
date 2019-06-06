@@ -6,9 +6,13 @@
 \usage{
 bround(data, var, rtype = "sigfig", dec = 3)
 }
+\arguments{
+\item{data}{data}
+}
 \description{
-internal use.
+bround Table function
 }
 \examples{
 bround()
 }
+\keyword{bround}

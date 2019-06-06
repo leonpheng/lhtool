@@ -2,7 +2,31 @@
 % Please edit documentation in R/collectedfunctions.R
 \name{lhcontab}
 \alias{lhcontab}
-\title{Funtion for Descriptove stats of continuous covariate}
+\title{#' conti Table function
+#'
+#' internal use.
+#' @param x data
+#' @keywords generic
+#' @export
+#' conti()
+#'
+conti<-function(input=input,var=var,by=by,round.type="sigfig",digit=3,quanti){
+  statsfun()
+  cv<-function(x){
+    abs(sd(x,na.rm=TRUE)/mean(x,na.rm=TRUE)*100)
+  }
+  nmiss<-function(x){length(x[is.na(x)])}
+  upci<-function(x){mean(x,na.rm=TRUE)+((sd(x,na.rm=TRUE)/(length(x))^0.5)*qt(0.975,df=length(x)-1))}
+  loci<-function(x){mean(x,na.rm=TRUE)-((sd(x,na.rm=TRUE)/(length(x))^0.5)*qt(0.975,df=length(x)-1))}    #1.96)}
+  se<-function(x){sd(x,na.rm=TRUE)/(length(x))^0.5}
+  per95<-function(x){quantile(x,percentile,na.rm=TRUE)}
+  per05<-function(x){quantile(x,1-percentile,na.rm=TRUE)}
+  Gmean <- function(x) {
+    exp(mean(log(x[x > 0]), na.rm=TRUE))
+  }
+  Gcv <- function(x) {
+    100*sqrt(exp(var(log(x[x > 0]), na.rm=TRUE)) - 1)
+  }}
 \usage{
 lhcontab(dat, var, by, format = "by.var", sumry = 1,
   round.type = "sigfig", digit = 3, quant = 0.9)
@@ -25,7 +49,37 @@ lhcontab(dat, var, by, format = "by.var", sumry = 1,
 \item{rowby}{Specidy sorting variable horizontally. If by > 1, set rowby=by.}
 }
 \description{
-Descriptove stats of continuous covariates
+input<-input[,c(var,by)]
+  l<-stats::reshape(input,
+             varying = var,
+             v.names = "score",
+             timevar = "var",
+             times = var,
+             direction = "long")
+  l1<-l[!is.na(l$score),]
+  l2<-l[is.na(l$score),]
+  l1$qt<-quanti
+  sum<-plyr::ddply(l1,c(by,"var"),summarise,
+             n=length(score),
+             #nmiss=nmiss(score),
+             mean=mean(score,na.rm=T),
+             cv=cv(score),
+             sd=sd(score,na.rm=T),
+             se=se(score),
+             median=median(score,na.rm=T),
+             min=min(score,na.rm=T,na.rm=T),
+             max=max(score),
+             lo_qt975=quantile(score,0.025,na.rm=T),
+             hi_qt975=quantile(score,0.975,na.rm=T),
+             lo_qt95=quantile(score,0.05,na.rm=T),
+             hi_qt95=quantile(score,0.95,na.rm=T),
+             lo_qtxx=quantile(score,1-unique(qt),na.rm=T),
+             hi_qtxx=quantile(score,unique(qt),na.rm=T),
+             lowCI=loci(score),
+             HiCI=upci(score),
+             GeoMean=Gmean(score),
+             GeoCV=Gcv(score)
+  )
 }
 \examples{
 con.tab(data=dat,var=c("WT","crcl","ALT"),by=c("study"),colby="var",rowby=by,sumry=set1)

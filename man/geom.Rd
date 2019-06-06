@@ -6,6 +6,10 @@
 \usage{
 geom(x)
 }
+\arguments{
+\item{x}{data}
+}
 \description{
 internal use.
 }
+\keyword{generic}

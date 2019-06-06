@@ -6,10 +6,10 @@
 \usage{
 ciup(x)
 }
+\arguments{
+\item{x}{data}
+}
 \description{
 internal use.
 }
-\examples{
-ciup()
-
-}
+\keyword{generic}

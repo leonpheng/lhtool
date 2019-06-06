@@ -6,10 +6,10 @@
 \usage{
 nmiss(x)
 }
+\arguments{
+\item{x}{data}
+}
 \description{
 internal use.
 }
-\examples{
-nmiss()
-
-}
+\keyword{generic}

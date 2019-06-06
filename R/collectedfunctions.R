@@ -1381,8 +1381,9 @@ dup2<-function(data,var,all,select){
 
 #TABLE FUNCTIONS###############
 #' bround Table function
-#'
-#' internal use.
+#' @param data data
+#' @keywords bround
+#' @export
 #' @examples
 #' bround()
 bround<-function(data,var,rtype="sigfig",dec=3){
@@ -1398,7 +1399,8 @@ bround<-function(data,var,rtype="sigfig",dec=3){
 #' geom Table function
 #'
 #' internal use.
-#' @examples
+#' @param x data
+#' @keywords generic
 #' @export
 #' geom()
 #'
@@ -1410,8 +1412,9 @@ geom <- function(x) {
 #' geocv Table function
 #'
 #' internal use.
-#' @examples
-#' @export 
+#' @param x data
+#' @keywords generic
+#' @export
 #' geocv()
 #'
 geocv <- function(x) {
@@ -1421,7 +1424,8 @@ geocv <- function(x) {
 #' cv Table function
 #'
 #' internal use.
-#' @examples
+#' @param x data
+#' @keywords generic
 #' @export
 #' cv()
 #'
@@ -1441,8 +1445,9 @@ cv <- function(x) {
 #' se Table function
 #'
 #' internal use.
+#' @param x data
+#' @keywords generic
 #' @export
-#' @examples
 #' se()
 #'
 se<-function(x){sd(x,na.rm=TRUE)/(length(x))^0.5}
@@ -1450,8 +1455,9 @@ se<-function(x){sd(x,na.rm=TRUE)/(length(x))^0.5}
 #' cilow Table function
 #'
 #' internal use
+#' @param x data
+#' @keywords generic
 #' @export
-#' @examples
 #' cilow()
 #'
 cilow<-function(x){mean(x,na.rm=TRUE)-((sd(x,na.rm=TRUE)/(length(x))^0.5)*qt(0.975,df=length(x)-1))}    #1.96)}
@@ -1459,8 +1465,9 @@ cilow<-function(x){mean(x,na.rm=TRUE)-((sd(x,na.rm=TRUE)/(length(x))^0.5)*qt(0.9
 #' ciup Table function
 #'
 #' internal use.
+#' @param x data
+#' @keywords generic
 #' @export
-#' @examples
 #' ciup()
 #'
 ciup<-function(x){mean(x,na.rm=TRUE)+((sd(x,na.rm=TRUE)/(length(x))^0.5)*qt(0.975,df=length(x)-1))}
@@ -1468,8 +1475,9 @@ ciup<-function(x){mean(x,na.rm=TRUE)+((sd(x,na.rm=TRUE)/(length(x))^0.5)*qt(0.97
 #' nmiss Table function
 #'
 #' internal use.
+#' @param x data
+#' @keywords generic
 #' @export
-#' @examples
 #' nmiss()
 #'
 nmiss<-function(x){length(x[is.na(x)])}
@@ -1489,90 +1497,91 @@ nmiss<-function(x){length(x[is.na(x)])}
 # 
 # }
 #####################TABLE STATS##################
-#' conti Table function
-#'
-#' internal use.
-#' @export
-#' @examples
-#' conti()
-#'
-conti<-function(input=input,var=var,by=by,round.type="sigfig",digit=3,quanti){
-  statsfun()
-  cv<-function(x){
-    abs(sd(x,na.rm=TRUE)/mean(x,na.rm=TRUE)*100)
-  }
-  nmiss<-function(x){length(x[is.na(x)])}
-  upci<-function(x){mean(x,na.rm=TRUE)+((sd(x,na.rm=TRUE)/(length(x))^0.5)*qt(0.975,df=length(x)-1))}
-  loci<-function(x){mean(x,na.rm=TRUE)-((sd(x,na.rm=TRUE)/(length(x))^0.5)*qt(0.975,df=length(x)-1))}    #1.96)}
-  se<-function(x){sd(x,na.rm=TRUE)/(length(x))^0.5}
-  per95<-function(x){quantile(x,percentile,na.rm=TRUE)}
-  per05<-function(x){quantile(x,1-percentile,na.rm=TRUE)}
-  Gmean <- function(x) {
-    exp(mean(log(x[x > 0]), na.rm=TRUE))
-  }
-  Gcv <- function(x) {
-    100*sqrt(exp(var(log(x[x > 0]), na.rm=TRUE)) - 1)
-  }
-
-  input<-input[,c(var,by)]
-  l<-stats::reshape(input,
-             varying = var,
-             v.names = "score",
-             timevar = "var",
-             times = var,
-             direction = "long")
-  l1<-l[!is.na(l$score),]
-  l2<-l[is.na(l$score),]
-  l1$qt<-quanti
-  sum<-plyr::ddply(l1,c(by,"var"),summarise,
-             n=length(score),
-             #nmiss=nmiss(score),
-             mean=mean(score,na.rm=T),
-             cv=cv(score),
-             sd=sd(score,na.rm=T),
-             se=se(score),
-             median=median(score,na.rm=T),
-             min=min(score,na.rm=T,na.rm=T),
-             max=max(score),
-             lo_qt975=quantile(score,0.025,na.rm=T),
-             hi_qt975=quantile(score,0.975,na.rm=T),
-             lo_qt95=quantile(score,0.05,na.rm=T),
-             hi_qt95=quantile(score,0.95,na.rm=T),
-             lo_qtxx=quantile(score,1-unique(qt),na.rm=T),
-             hi_qtxx=quantile(score,unique(qt),na.rm=T),
-             lowCI=loci(score),
-             HiCI=upci(score),
-             GeoMean=Gmean(score),
-             GeoCV=Gcv(score)
-  )
-
-  variable=c("mean","cv","sd","se","median","min","GeoMean", "GeoCV",
-             "max","lo_qt975", "hi_qt975", "lo_qt95",  "hi_qt95","lo_qtxx","hi_qtxx","lowCI","HiCI")
-
-  l<-reshape(sum,
-             varying = variable,
-             v.names = "value",
-             timevar = "toround",
-             times = variable,
-             direction = "long")
-  l<-l[!is.na(l$value),]
-  if(round.type=="sigfig"){
-    l$value<-sigfig(l$value,digit)}else{l$value<-cround(l$value,digit)}
-  l$id<-NULL
-  keep<-names(l)[!names(l)%in%c("toround","value")]
-  w <- stats::reshape(l,
-               timevar = "toround",
-               idvar = keep,
-               direction = "wide")
-  names(w)<-gsub("value.","",names(w))
-  if(nrow(l2)>0){
-    sum1<-plyr::ddply(l2,c(by,"var"),summarise,
-                nmiss=nmiss(score))
-    w<-plyr::join(w,sum1)
-    w$nmiss[is.na(w$nmiss)]<-0}else{w$nmiss=0}
-  w$score<-w$id<-NULL
-  w
-}
+#' #' conti Table function
+#' #'
+#' #' internal use.
+#' #' @param x data
+#' #' @keywords generic
+#' #' @export
+#' #' conti()
+#' #'
+#' conti<-function(input=input,var=var,by=by,round.type="sigfig",digit=3,quanti){
+#'   statsfun()
+#'   cv<-function(x){
+#'     abs(sd(x,na.rm=TRUE)/mean(x,na.rm=TRUE)*100)
+#'   }
+#'   nmiss<-function(x){length(x[is.na(x)])}
+#'   upci<-function(x){mean(x,na.rm=TRUE)+((sd(x,na.rm=TRUE)/(length(x))^0.5)*qt(0.975,df=length(x)-1))}
+#'   loci<-function(x){mean(x,na.rm=TRUE)-((sd(x,na.rm=TRUE)/(length(x))^0.5)*qt(0.975,df=length(x)-1))}    #1.96)}
+#'   se<-function(x){sd(x,na.rm=TRUE)/(length(x))^0.5}
+#'   per95<-function(x){quantile(x,percentile,na.rm=TRUE)}
+#'   per05<-function(x){quantile(x,1-percentile,na.rm=TRUE)}
+#'   Gmean <- function(x) {
+#'     exp(mean(log(x[x > 0]), na.rm=TRUE))
+#'   }
+#'   Gcv <- function(x) {
+#'     100*sqrt(exp(var(log(x[x > 0]), na.rm=TRUE)) - 1)
+#'   }
+#' 
+#'   input<-input[,c(var,by)]
+#'   l<-stats::reshape(input,
+#'              varying = var,
+#'              v.names = "score",
+#'              timevar = "var",
+#'              times = var,
+#'              direction = "long")
+#'   l1<-l[!is.na(l$score),]
+#'   l2<-l[is.na(l$score),]
+#'   l1$qt<-quanti
+#'   sum<-plyr::ddply(l1,c(by,"var"),summarise,
+#'              n=length(score),
+#'              #nmiss=nmiss(score),
+#'              mean=mean(score,na.rm=T),
+#'              cv=cv(score),
+#'              sd=sd(score,na.rm=T),
+#'              se=se(score),
+#'              median=median(score,na.rm=T),
+#'              min=min(score,na.rm=T,na.rm=T),
+#'              max=max(score),
+#'              lo_qt975=quantile(score,0.025,na.rm=T),
+#'              hi_qt975=quantile(score,0.975,na.rm=T),
+#'              lo_qt95=quantile(score,0.05,na.rm=T),
+#'              hi_qt95=quantile(score,0.95,na.rm=T),
+#'              lo_qtxx=quantile(score,1-unique(qt),na.rm=T),
+#'              hi_qtxx=quantile(score,unique(qt),na.rm=T),
+#'              lowCI=loci(score),
+#'              HiCI=upci(score),
+#'              GeoMean=Gmean(score),
+#'              GeoCV=Gcv(score)
+#'   )
+#' 
+#'   variable=c("mean","cv","sd","se","median","min","GeoMean", "GeoCV",
+#'              "max","lo_qt975", "hi_qt975", "lo_qt95",  "hi_qt95","lo_qtxx","hi_qtxx","lowCI","HiCI")
+#' 
+#'   l<-reshape(sum,
+#'              varying = variable,
+#'              v.names = "value",
+#'              timevar = "toround",
+#'              times = variable,
+#'              direction = "long")
+#'   l<-l[!is.na(l$value),]
+#'   if(round.type=="sigfig"){
+#'     l$value<-sigfig(l$value,digit)}else{l$value<-cround(l$value,digit)}
+#'   l$id<-NULL
+#'   keep<-names(l)[!names(l)%in%c("toround","value")]
+#'   w <- stats::reshape(l,
+#'                timevar = "toround",
+#'                idvar = keep,
+#'                direction = "wide")
+#'   names(w)<-gsub("value.","",names(w))
+#'   if(nrow(l2)>0){
+#'     sum1<-plyr::ddply(l2,c(by,"var"),summarise,
+#'                 nmiss=nmiss(score))
+#'     w<-plyr::join(w,sum1)
+#'     w$nmiss[is.na(w$nmiss)]<-0}else{w$nmiss=0}
+#'   w$score<-w$id<-NULL
+#'   w
+#' }
 
 
 #' Funtion for Descriptove stats of continuous covariate

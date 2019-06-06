@@ -6,10 +6,10 @@
 \usage{
 se(x)
 }
+\arguments{
+\item{x}{data}
+}
 \description{
 internal use.
 }
-\examples{
-se()
-
-}
+\keyword{generic}

@@ -6,10 +6,10 @@
 \usage{
 cilow(x)
 }
+\arguments{
+\item{x}{data}
+}
 \description{
 internal use
 }
-\examples{
-cilow()
-
-}
+\keyword{generic}
