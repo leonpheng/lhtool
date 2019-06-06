@@ -2,7 +2,8 @@
 % Please edit documentation in R/collectedfunctions.R
 \name{ciup}
 \alias{ciup}
-\title{ciup Table function}
+\title{ciup Table function
+internal use.}
 \usage{
 ciup(x)
 }
@@ -10,6 +11,10 @@ ciup(x)
 \item{x}{data}
 }
 \description{
+ciup Table function
 internal use.
 }
-\keyword{generic}
+\examples{
+ciup()
+}
+\keyword{ciup}

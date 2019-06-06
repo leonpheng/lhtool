@@ -12,4 +12,7 @@ cilow(x)
 \description{
 internal use
 }
+\examples{
+cilow()
+}
 \keyword{generic}

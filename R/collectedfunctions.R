@@ -1353,6 +1353,7 @@ dup1<-function(data,var,all,select){
       d1<-d1[,c(var,select)]}}
   d1
 }
+
 #Output duplicated items with all or partial variabes
 #' Filter all duplicated rows
 #'
@@ -1398,37 +1399,35 @@ bround<-function(data,var,rtype="sigfig",dec=3){
 
 #' geom Table function
 #'
-#' internal use.
 #' @param x data
-#' @keywords generic
+#' @keywords geom
 #' @export
+#' @examples
 #' geom()
-#'
+
 
 geom <- function(x) {
   exp(mean(log(x[x > 0]), na.rm=TRUE))
 }
 
 #' geocv Table function
-#'
-#' internal use.
 #' @param x data
-#' @keywords generic
+#' @keywords geocv
 #' @export
+#' @examples
 #' geocv()
-#'
+
 geocv <- function(x) {
   100*sqrt(exp(var(log(x[x > 0]), na.rm=TRUE)) - 1)
 }
 
 #' cv Table function
-#'
-#' internal use.
 #' @param x data
-#' @keywords generic
+#' @keywords cv
 #' @export
+#' @examples
 #' cv()
-#'
+
 cv <- function(x) {
   abs(sd(x,na.rm=TRUE)/mean(x,na.rm=TRUE)*100)
 }
@@ -1443,13 +1442,13 @@ cv <- function(x) {
 #per95<-function(x){quantile(x,percentile,na.rm=TRUE)}
 
 #' se Table function
-#'
 #' internal use.
 #' @param x data
-#' @keywords generic
+#' @keywords se
 #' @export
+#' @examples
 #' se()
-#'
+
 se<-function(x){sd(x,na.rm=TRUE)/(length(x))^0.5}
 
 #' cilow Table function
@@ -1458,28 +1457,27 @@ se<-function(x){sd(x,na.rm=TRUE)/(length(x))^0.5}
 #' @param x data
 #' @keywords generic
 #' @export
+#' @examples
 #' cilow()
-#'
+
 cilow<-function(x){mean(x,na.rm=TRUE)-((sd(x,na.rm=TRUE)/(length(x))^0.5)*qt(0.975,df=length(x)-1))}    #1.96)}
 
 #' ciup Table function
-#'
 #' internal use.
 #' @param x data
-#' @keywords generic
+#' @keywords ciup
 #' @export
+#' @examples
 #' ciup()
-#'
 ciup<-function(x){mean(x,na.rm=TRUE)+((sd(x,na.rm=TRUE)/(length(x))^0.5)*qt(0.975,df=length(x)-1))}
 
 #' nmiss Table function
-#'
 #' internal use.
 #' @param x data
-#' @keywords generic
+#' @keywords nmiss
 #' @export
+#' @examples
 #' nmiss()
-#'
 nmiss<-function(x){length(x[is.na(x)])}
 
 #nmiss<-function(x){length(x[is.na(x)])}
@@ -1497,14 +1495,7 @@ nmiss<-function(x){length(x[is.na(x)])}
 # 
 # }
 #####################TABLE STATS##################
-#' #' conti Table function
-#' #'
-#' #' internal use.
-#' #' @param x data
-#' #' @keywords generic
-#' #' @export
-#' #' conti()
-#' #'
+
 #' conti<-function(input=input,var=var,by=by,round.type="sigfig",digit=3,quanti){
 #'   statsfun()
 #'   cv<-function(x){
@@ -1700,7 +1691,7 @@ set[[10]]=c("paste0(mean,sp,p1,cv,p2,lb,median,sp,b1,lo_qtxx,d,hi_qtxx,b2)","Mea
 #' @keywords roundbatch
 #' @export
 #' @examples
-#' roundbatch()
+
 roundbatch<-function(data,variable,toround,nb){
   head(data)
   data<-sum

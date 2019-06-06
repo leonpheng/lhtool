@@ -10,6 +10,9 @@ cv(x)
 \item{x}{data}
 }
 \description{
-internal use.
+cv Table function
 }
-\keyword{generic}
+\examples{
+cv()
+}
+\keyword{cv}

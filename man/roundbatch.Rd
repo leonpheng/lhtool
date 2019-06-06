@@ -9,7 +9,4 @@ roundbatch(data, variable, toround, nb)
 \description{
 internal use
 }
-\examples{
-roundbatch()
-}
 \keyword{roundbatch}

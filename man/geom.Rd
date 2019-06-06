@@ -10,6 +10,9 @@ geom(x)
 \item{x}{data}
 }
 \description{
-internal use.
+geom Table function
 }
-\keyword{generic}
+\examples{
+geom()
+}
+\keyword{geom}

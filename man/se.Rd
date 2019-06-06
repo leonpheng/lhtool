@@ -2,7 +2,8 @@
 % Please edit documentation in R/collectedfunctions.R
 \name{se}
 \alias{se}
-\title{se Table function}
+\title{se Table function
+internal use.}
 \usage{
 se(x)
 }
@@ -10,6 +11,10 @@ se(x)
 \item{x}{data}
 }
 \description{
+se Table function
 internal use.
 }
-\keyword{generic}
+\examples{
+se()
+}
+\keyword{se}

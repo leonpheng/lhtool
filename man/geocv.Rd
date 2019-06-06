@@ -10,6 +10,9 @@ geocv(x)
 \item{x}{data}
 }
 \description{
-internal use.
+geocv Table function
 }
-\keyword{generic}
+\examples{
+geocv()
+}
+\keyword{geocv}

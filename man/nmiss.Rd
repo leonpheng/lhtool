@@ -2,7 +2,8 @@
 % Please edit documentation in R/collectedfunctions.R
 \name{nmiss}
 \alias{nmiss}
-\title{nmiss Table function}
+\title{nmiss Table function
+internal use.}
 \usage{
 nmiss(x)
 }
@@ -10,6 +11,10 @@ nmiss(x)
 \item{x}{data}
 }
 \description{
+nmiss Table function
 internal use.
 }
-\keyword{generic}
+\examples{
+nmiss()
+}
+\keyword{nmiss}

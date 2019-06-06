@@ -2,15 +2,7 @@
 % Please edit documentation in R/collectedfunctions.R
 \name{lhcontab}
 \alias{lhcontab}
-\title{#' conti Table function
-#'
-#' internal use.
-#' @param x data
-#' @keywords generic
-#' @export
-#' conti()
-#'
-conti<-function(input=input,var=var,by=by,round.type="sigfig",digit=3,quanti){
+\title{conti<-function(input=input,var=var,by=by,round.type="sigfig",digit=3,quanti){
   statsfun()
   cv<-function(x){
     abs(sd(x,na.rm=TRUE)/mean(x,na.rm=TRUE)*100)
