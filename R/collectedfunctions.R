@@ -1,3 +1,22 @@
+#' Combine variables in the same column
+#'
+#' @param data Data frame 1 and 2 with long vectors and values. Note: no duplicated sorting vector allowed 
+#' @param combine.var Variable name, c(var1,var2). var1 will be stacked over var 2
+#' @keywords stackvar()
+#' @export
+#' @examples
+stackvar<-function(data,combine.var=c("xxx","variable")){
+  z$dum<-seq(nrow(z))
+  z1<-z
+  z1$dum<-z1$dum-1
+  z1<-nodup(z1,combine.var[1],"all")
+  keep<-c(combine.var[1],combine.var[2],"dum")
+  z1[,combine.var[2]]<-z1[,combine.var[1]];z1[,!names(z1)%in%keep]<-""
+  z<-rbind(z,z1[,names(z)]); z<-z[order(z$dum),]
+  z[,c(combine.var[1],"dum")]<-NULL
+  z}
+
+
 
 #' mutate variable names
 #'
