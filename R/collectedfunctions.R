@@ -1,3 +1,55 @@
+#' Cut values and create category
+#'
+#' @param data Data frame 
+#' @param var Variable to be cut
+#' @param breaks break points 
+#' @param labels category name. If fancy, the categories will be created according to the break points 
+#' @param right If false, right value will be exclusive
+#'  @param newvar vector name of the categorical. If default, the var with suffix"cat" will be used as default name
+#' @keywords lhcut()
+#' @export
+#' @examples 
+
+lhcut<-function(data,var,breaks,labels="fancy",right=F,newvar="default"){
+  brk=c(min(data[,var]),breaks,max(data[,var])^2)
+  if(newvar=="default"){nvar=paste0(var,"cat")}else{nvar=newvar}
+  if(labels=="fancy"){
+    lab1=c(paste0("<",breaks))
+    lab2<-c(paste0(">=",breaks))
+    lab3<-c(paste0("<=",breaks))
+    lab4<-c(paste0(">",breaks))
+    lab11<-NULL;lab22<-NULL
+    for(i in 1:(length(breaks)-1)){
+      lab11<-c(lab11,paste(lab2[i],"&",lab1[i+1]))
+      lab22<-c(lab22,paste(lab4[i],"&",lab3[i+1]))
+    }
+    if(right){
+      labels<-c(lab3[1],lab22,lab4[length(lab4)])}else{ 
+        labels<-c(lab1[1],lab11,lab2[length(lab2)])
+      } }
+  
+  data[,nvar]<-cut(data[,var],breaks=brk,labels=labels,right=right)
+  print(addvar(data,nvar,var,"range(x)","no"))
+  data}
+
+
+#' Change factor level of a variable using matched level of another variable in the same dataset
+#'
+#' @param data Data frame 
+#' @param leader lead Variable to be used for factor level of the follower variable
+#' @param follower follower Variable  
+#' @keywords lhfactor()
+#' @export
+#' @examples 
+
+lhfactor<-function(data=test,leader="AGEcat",follower="catt"){
+  lab<-nodup(data,c(leader,follower),"var");lab<-lab[order(lab[,leader]),follower]
+  data<-reflag(data,follower,lab)
+}
+
+
+
+
 #' Combine variables in the same column
 #'
 #' @param data Data frame 1 and 2 with long vectors and values. Note: no duplicated sorting vector allowed 
