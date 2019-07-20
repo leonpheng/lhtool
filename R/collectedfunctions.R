@@ -2,6 +2,53 @@
 #'
 #' @param data Data frame 
 #' @param var Variable to be cut
+#' @param file.or.path File path ("xxx/zzz/") or data frame (c("lb","dm")) 
+#' @param fpattern File extention: ex. "csv", all csv file in folder will be used  
+#' @param filename specify full file name. set fpattern to Null
+#'
+#' @keywords lhlook()
+#' @export
+#' @examples 
+
+lhlook<-function(var,file.or.path,fpattern=NULL,filename=NULL){
+  if(!is.null(fpattern)){
+    list<-dir(file.or.path)[grep(fpattern,dir(d))]
+  }
+  if(!is.null(filename)){
+    list=filename}
+  if(is.null(filename)&is.null(fpattern)){
+    list=file.or.path
+  }
+  
+  out<-NULL
+  for(i in tolower(var)){
+    for(j in list){
+      b <- function(x) {}
+      if(!is.null(fpattern)|!is.null(fpattern)){
+        d<-file.or.path
+        xt<-substring(j,nchar(j)-2)
+        rt<-c("read.csv","haven::read_xpt","haven::read_sas")
+        rt<-rt[grep(xt,rt)]
+        txt<-paste0(rt,"(file.path(d,j))")}else{txt<-j}
+      body(b) <- parse(text=txt)
+      inp<-as.data.frame(b())
+      for(z in names(inp)){
+        if(length(tolower(z)[grep(i,tolower(z))])>0){
+          xx<-paste0(j,":",z)
+        }else{xx=NULL}
+        if(length(unique(inp[,z][grep(i,tolower(inp[,z]))]))>0){
+          out1<-paste0(xx,j,";",z,unique(inp[,z][grep(i,inp[,z])]),":",i)
+        }else{out1<-c(xx,NULL)}
+        out<-c(out,out1)}
+      print(out)}}}
+
+
+
+
+#' Cut values and create category
+#'
+#' @param data Data frame 
+#' @param var Variable to be cut
 #' @param breaks break points 
 #' @param labels category name. If fancy, the categories will be created according to the break points 
 #' @param right If false, right value will be exclusive
