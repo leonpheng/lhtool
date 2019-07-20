@@ -2,7 +2,7 @@
 % Please edit documentation in R/collectedfunctions.R
 \name{lhlook}
 \alias{lhlook}
-\title{Cut values and create category}
+\title{Look for keyword across dataset}
 \usage{
 lhlook(var, file.or.path, fpattern = NULL, filename = NULL)
 }
@@ -18,6 +18,6 @@ lhlook(var, file.or.path, fpattern = NULL, filename = NULL)
 \item{data}{Data frame}
 }
 \description{
-Cut values and create category
+Look for keyword across dataset
 }
 \keyword{lhlook()}

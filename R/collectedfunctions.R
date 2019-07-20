@@ -1,4 +1,4 @@
-#' Cut values and create category
+#' Look for keyword across dataset
 #'
 #' @param data Data frame 
 #' @param var Variable to be cut
