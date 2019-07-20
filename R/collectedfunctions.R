@@ -5,11 +5,11 @@
 #' @param file.or.path File path ("xxx/zzz/") or data frame (c("lb","dm")) 
 #' @param fpattern File extention: ex. "csv", all csv file in folder will be used  
 #' @param filename specify full file name. set fpattern to Null
-#' @keywords lhseek()
+#' @keywords lhlook()
 #' @export
 #' @examples 
 
-lhseek<-function(var,file.or.path,fpattern=NULL,filename=NULL){
+lhlook<-function(var,file.or.path,fpattern=NULL,filename=NULL){
   if(!is.null(fpattern)){
     list<-dir(file.or.path)[grep(fpattern,dir(d))]
   }
