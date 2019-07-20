@@ -5,7 +5,6 @@
 #' @param file.or.path File path ("xxx/zzz/") or data frame (c("lb","dm")) 
 #' @param fpattern File extention: ex. "csv", all csv file in folder will be used  
 #' @param filename specify full file name. set fpattern to Null
-#'
 #' @keywords lhlook()
 #' @export
 #' @examples 
