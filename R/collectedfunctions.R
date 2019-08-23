@@ -5,11 +5,11 @@
 #' @param file.or.path File path ("xxx/zzz/") or data frame (c("lb","dm")) 
 #' @param fpattern File extention: ex. "csv", all csv file in folder will be used  
 #' @param filename specify full file name. set fpattern to Null
-#' @keywords lhlook()
+#' @keywords lhseek()
 #' @export
 #' @examples 
 
-lhlook<-function(var,file.or.path,fpattern=NULL,filename=NULL){
+lhseek<-function(var,file.or.path,fpattern=NULL,filename=NULL){
   if(!is.null(fpattern)){
     list<-dir(file.or.path)[grep(fpattern,dir(d))]
   }
@@ -721,11 +721,12 @@ blk.locf2<-function (x, id, na.action = c("fill", "carry.back"), fill = NA)
 #' @examples
 #' tad_addl()
 
-tad_addl<-function (data=df, id="usubjid", ii="ii", addl="addl", rtime="rtime", evid="evid", dose.expand = "yes") 
+tad_addl<-function (data, id, ii, addl, 
+                    rtime, evid, dose.expand = "yes") 
 {
   data <- chclass(data, c(rtime, evid, addl, ii), "num")
-  data[,addl][is.na(data[,addl])]<-0
-  data[,ii][is.na(data[,ii])]<-0
+  data[, addl][is.na(data[, addl])] <- 0
+  data[, ii][is.na(data[, ii])] <- 0
   data[, "TAD"] <- data[, "tad"] <- NULL
   nam <- names(data)
   data <- data[order(data[, id], data[, rtime]), ]
@@ -734,14 +735,13 @@ tad_addl<-function (data=df, id="usubjid", ii="ii", addl="addl", rtime="rtime", 
   datp <- data[data[, evid] != 1, ]
   dat0 <- data[data[, evid] == 1, ]
   datr <- NULL
-  
   for (i in 1:nrow(dat0)) {
     dat1 <- dat0[i, ]
     if (dat1[, addl] == 0) {
       dat2 <- dat1
-    }  else {
+    }    else {
       dat2 <- as.data.frame(matrix(ncol = ncol(dat1), nrow = dat1[, 
-                                                                  addl]))
+                                                                  addl]+1))
       names(dat2) <- names(dat1)
       dat2[, names(dat2)] <- dat1
       dat2$dum <- seq(0, nrow(dat2) - 1, 1)
@@ -765,13 +765,12 @@ tad_addl<-function (data=df, id="usubjid", ii="ii", addl="addl", rtime="rtime", 
   datp1$TAD <- datp1[, rtime] - datp1$loc1
   datp1$TAD[datp1$TAD < 0] <- 0
   range(datp1$TAD)
-  
   if (dose.expand != "yes") {
     d1 <- datp1[datp1$lhdose == "no", ]
     d1$loc1 <- d1$lhdose <- NULL
     data <- rbind(d1, dose)
     data <- data[order(data[, id], data[, rtime]), ]
-  } else {
+  }  else {
     data <- datp1[, !names(datp1) %in% c("loc1", "lhdose")]
   }
   data
@@ -1009,8 +1008,8 @@ rt2tad<-function(data,id,time,evid){
 #' @examples
 #' nmid()
 nmid<-function(data,id,varname="NMID"){
-  id="USUBJID";varname="X.NMID"
-  data<-pcf1
+  id=id;varname=varname
+  data<-data
   data$ord<-seq(1,nrow(data),1)
   idat<-data.frame(id=unique(data[,id]),varname=seq(1,length(unique(data[,id])),1))
   names(idat)<-c(id,varname)
