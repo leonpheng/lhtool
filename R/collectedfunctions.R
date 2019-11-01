@@ -57,7 +57,7 @@ vpc_plots<-function(...){
 #' @param obs.data Observed data. Type vpc_plots forbasic R code to be used with the output 
 #' @param sim.data Sim data
 #' @param bin Binning. This should be created in both datasets
-#' @param qt Quantile  
+#' @param prob Quantile  
 #' @param sort Sorting as vector 
 #' @param dv Concentration or response.Same name in both datasets   
 #' @param tad Time after dose. In obs.data
@@ -69,8 +69,8 @@ vpc_plots<-function(...){
 #' @export
 #' @examples 
 
-lhvpc_stat<-function (obs.data = obs, sim.data = sim, bin = "bin", qt = c(0.025, 
-                                                                          0.5, 0.95), sort = NULL, dv = "DV", tad = "TAD", rtime = "IVAR", 
+lhvpc_stat<-function (obs.data = obs, sim.data = sim, bin = "bin", prob = c(0.025, 
+                                                                            0.5, 0.95), sort = NULL, dv = "DV", tad = "TAD", rtime = "IVAR", 
                       blq = NULL, replicate = "REPLICATE", pred.corr = NULL) 
 {
   if (!is.null(pred.corr)) {
@@ -87,14 +87,14 @@ lhvpc_stat<-function (obs.data = obs, sim.data = sim, bin = "bin", qt = c(0.025,
   }
   
   var <- NULL
-  for (i in 1:length(qt)) {
-    namqt <- paste0("qt", qt[i] * 100)
+  for (i in 1:length(prob)) {
+    namqt <- paste0("qt", prob[i] * 100)
     var <- c(var, namqt)
-    if (qt[i] == qt[1]) {
-      obs1 <- addvar(obs.data, c(sort, "bin"), dv, "quantile(x,qt[i])", 
+    if (prob[i] == prob[1]) {
+      obs1 <- addvar(obs.data, c(sort, "bin"), dv, "quantile(x,prob[i])", 
                      "no", namqt)
     } else {
-      obs1 <- dplyr::left_join(obs1, addvar(obs.data, c(sort,"bin"), dv, "quantile(x,qt[i])", "no", namqt))
+      obs1 <- dplyr::left_join(obs1, addvar(obs.data, c(sort,"bin"), dv, "quantile(x,prob[i])", "no", namqt))
     }
   }
   obs1 <- lhlong(obs1, var)
@@ -110,26 +110,26 @@ lhvpc_stat<-function (obs.data = obs, sim.data = sim, bin = "bin", qt = c(0.025,
     sim.data[, dv] <- sim.data[, dv]
   }
   var <- NULL
-  for (i in 1:length(qt)) {
-    namqt <- paste0("qt", qt[i] * 100)
+  for (i in 1:length(prob)) {
+    namqt <- paste0("qt", prob[i] * 100)
     var <- c(var, namqt)
-    if (qt[i] == qt[1]) {
+    if (prob[i] == prob[1]) {
       s1 <- addvar(sim.data, c(sort, bin, replicate), dv, 
-                   "quantile(x,qt[i])", "no", namqt)
+                   "quantile(x,prob[i])", "no", namqt)
     }else {
       s1 <- dplyr::left_join(s1, addvar(sim.data, c(sort, 
-                                                    bin, replicate), dv, "quantile(x,qt[i])", "no", namqt))
+                                                    bin, replicate), dv, "quantile(x,prob[i])", "no", namqt))
     }
   }
   s1 <- lhlong(s1, var)
   namvar <- c("low", "med", "up")
   for (j in 1:3) {
     if (j == 1) {
-      s2 <- addvar(s1, c(bin, "variable"), "value", "quantile(x,qt[j])", 
+      s2 <- addvar(s1, c(bin, "variable"), "value", "quantile(x,prob[j])", 
                    "no", namvar[1])
     } else {
       s2 <- dplyr::left_join(s2, addvar(s1, c(bin, "variable"), 
-                                        "value", "quantile(x,qt[j])", "no", namvar[j]))
+                                        "value", "quantile(x,prob[j])", "no", namvar[j]))
     }
   }
   if (!is.null(blq)) {
@@ -169,7 +169,6 @@ lhvpc_stat<-function (obs.data = obs, sim.data = sim, bin = "bin", qt = c(0.025,
   }
   out1
 }
-
 
 #' Look for keyword across dataset
 #'

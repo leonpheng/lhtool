@@ -5,7 +5,7 @@
 \title{Compute VPC stats}
 \usage{
 lhvpc_stat(obs.data = obs, sim.data = sim, bin = "bin",
-  qt = c(0.025, 0.5, 0.95), sort = NULL, dv = "DV", tad = "TAD",
+  prob = c(0.025, 0.5, 0.95), sort = NULL, dv = "DV", tad = "TAD",
   rtime = "IVAR", blq = NULL, replicate = "REPLICATE",
   pred.corr = NULL)
 }
@@ -16,7 +16,7 @@ lhvpc_stat(obs.data = obs, sim.data = sim, bin = "bin",
 
 \item{bin}{Binning. This should be created in both datasets}
 
-\item{qt}{Quantile}
+\item{prob}{Quantile}
 
 \item{sort}{Sorting as vector}
 
