@@ -69,81 +69,108 @@ vpc_plots<-function(...){
 #' @export
 #' @examples 
 
-lhvpc_stat<-function(obs.data=obs,
-                     sim.data=sim,
-                     bin="bin",
-                     qt=c(0.025,0.5,0.95),
-                     sort=NULL,
-                     dv="DV",
-                     tad="TAD",
-                     rtime="IVAR",
-                     blq=NULL,
-                     replicate="REPLICATE",
-                     pred.corr=NULL){
-  if(!is.null(pred.corr)){
-    medpred<-median(obs.data[,pred.corr[1]])
-    if(pred.corr[2]=="lin"){
-      obs.data[,dv]<-obs.data[,dv]*medpred/obs.data[,pred.corr[1]]
-    }else{obs.data[,dv]<-obs.data[,dv]+medpred-obs.data[,pred.corr[1]]}
-  }else{obs.data[,dv]<-obs.data[,dv]} 
-  var<-NULL
-  for(i in qt){
-    namqt<-paste0("qt",i*100)
-    var<-c(var,namqt)
-    if(i==qt[1]){
-      obs1<-addvar(obs.data,c(sort,"bin"),dv,"quantile(x,i)","no",namqt)}else{
-        obs1<-dplyr::left_join(obs1,addvar(obs.data,c(sort,"bin"),dv,"quantile(x,i)","no",namqt))}
-  }
-  obs1<-lhlong(obs1,var)
-  head(obs)
-  if(!is.null(pred.corr)){
-    medpred<-median(sim.data[,pred.corr[1]])
-    if(pred.corr[2]=="lin"){
-      sim.data[,dv]<-sim.data[,dv]*medpred/sim.data[,pred.corr[1]]
-    }else{sim.data[,dv]<-sim.data[,dv]+medpred-sim.data[,pred.corr[1]]}
-  }else{sim.data[,dv]<-sim.data[,dv]}  
-  var<-NULL
-  for(i in qt){
-    namqt<-paste0("qt",i*100)
-    var<-c(var,namqt)
-    if(i==qt[1]){
-      s1<-addvar(sim.data,c(sort,bin,replicate),dv,"quantile(x,i)","no",namqt)}else{
-        s1<-dplyr::left_join(s1,addvar(sim.data,c(sort,bin,replicate),dv,"quantile(x,i)","no",namqt))}
-  }
-  s1<-lhlong(s1,var)
+lhvpc_stat<-function (obs.data = obs, sim.data = sim, bin = "bin", qt = c(0.025, 
+                                                                          0.5, 0.95), sort = NULL, dv = "DV", tad = "TAD", rtime = "IVAR", 
+                      blq = NULL, replicate = "REPLICATE", pred.corr = NULL) {
   
-  namvar<-c("low","med","up")
-  for(i in 1:3){
-    if(i==1) { 
-      s2<-addvar(s1,c(bin,"variable"),"value","quantile(x,qt[i])","no",namvar[1])}else{
-        s2<-dplyr::left_join(s2,addvar(s1,c(bin,"variable"),"value","quantile(x,qt[i])","no",namvar[i]))}
-  }
-  
-  if(!is.null(blq)){
-    if(is.numeric(blq)){
-      obs.data$blq<-obs.data[,dv]<=blq
-      sim.data$blq<-sim.data[,dv]<=blq
-    }else{
-      obs.data$blq<-obs.data[,dv]<=obs.data[,blq]
-      sim.data$blq<-sim.data[,dv]<=sim.data[,blq]
+  if (!is.null(pred.corr)) {
+    medpred <- median(obs.data[, pred.corr[1]])
+    if (pred.corr[2] == "lin") {
+      obs.data[, dv] <- obs.data[, dv] * medpred/obs.data[, 
+                                                          pred.corr[1]]
+    } else {
+      obs.data[, dv] <- obs.data[, dv] + medpred - obs.data[, 
+                                                            pred.corr[1]]
     }
-    blqo<-addvar(obs.data,bin,"blq","sum(x)","no","blqo")
-    blqo<-dplyr::left_join(blqo,addvar(obs.data,bin,"blq","length(x)","no","nblqo"))
-    blqo$blqo<-blqo$blqo/blqo$nblqo*100
-    blqs<-addvar(sim.data,bin,"blq","sum(x)","no","blqs")
-    blqs<-dplyr::left_join(blqs,addvar(sim.data,bin,"blq","length(x)","no","nblqs"))
-    blqs$blqs<-blqs$blqs/blqs$nblqs*100
-  }else{blqo<-NULL;blqs<-NULL}
-  
-  names(obs1)<-paste0("OBS.",names(obs1))
-  names(s2)<-paste0("SIM.",names(s2))
-  output<-lhcbind(obs1,s2)
-  out1<-dplyr::left_join(lhmutate(obs.data[,c(sort,"bin",dv,tad,rtime)],"bin=SIM.bin"),output)
-  if(!is.null(blqo)){
-    out1<-dplyr::left_join(lhmutate(blqo,"bin=SIM.bin"),out1)
-    out1<-dplyr::left_join(lhmutate(blqs,"bin=SIM.bin"),out1)
+  }else {
+    obs.data[, dv] <- obs.data[, dv]
   }
-  out1}
+  var <- NULL
+  for (i in qt) {
+    namqt <- paste0("qt", i * 100)
+    var <- c(var, namqt)
+    if (i == qt[1]) {
+      obs1 <- addvar(obs.data, c(sort, "bin"), dv, "quantile(x,i)", 
+                     "no", namqt)
+    } else {
+      obs1 <- dplyr::left_join(obs1, addvar(obs.data, c(sort,"bin"), dv, "quantile(x,i)", "no", namqt))
+    }
+  }
+  
+  obs1 <- lhlong(obs1, var)
+  
+  if (!is.null(pred.corr)) {
+    medpred <- median(sim.data[, pred.corr[1]])
+    if (pred.corr[2] == "lin") {
+      sim.data[, dv] <- sim.data[, dv] * medpred/sim.data[, 
+                                                          pred.corr[1]]
+    } else {
+      sim.data[, dv] <- sim.data[, dv] + medpred - sim.data[, 
+                                                            pred.corr[1]]
+    }
+  }else {
+    sim.data[, dv] <- sim.data[, dv]
+  }
+  
+  var <- NULL
+  for (i in qt) {
+    namqt <- paste0("qt", i * 100)
+    var <- c(var, namqt)
+    if (i == qt[1]) {
+      s1 <- addvar(sim.data, c(sort, bin, replicate), dv, 
+                   "quantile(x,i)", "no", namqt)
+    }else {
+      s1 <- dplyr::left_join(s1, addvar(sim.data, c(sort,bin, replicate), dv, "quantile(x,i)", "no", namqt))
+    }
+  }
+  
+  s1 <- lhlong(s1, var)
+  namvar <- c("low", "med", "up")
+  for (j in 1:3) {
+    if (j == 1) {
+      s2 <- addvar(s1, c(bin, "variable"), "value", "quantile(x,qt[j])", 
+                   "no", namvar[1])
+    } else {
+      s2 <- dplyr::left_join(s2, addvar(s1, c(bin, "variable"), 
+                                        "value", "quantile(x,qt[j])", "no", namvar[j]))
+    }
+  }
+  
+  if (!is.null(blq)) {
+    if (is.numeric(blq)) {
+      obs.data$blq <- obs.data[, dv] <= blq
+      sim.data$blq <- sim.data[, dv] <= blq
+    } else {
+      obs.data$blq <- obs.data[, dv] <= obs.data[, blq]
+      sim.data$blq <- sim.data[, dv] <= sim.data[, blq]
+    }
+    blqo <- addvar(obs.data, bin, "blq", "sum(x)", "no", 
+                   "blqo")
+    blqo <- dplyr::left_join(blqo, addvar(obs.data, bin, 
+                                          "blq", "length(x)", "no", "nblqo"))
+    blqo$blqo <- blqo$blqo/blqo$nblqo * 100
+    blqs <- addvar(sim.data, bin, "blq", "sum(x)", "no", 
+                   "blqs")
+    blqs <- dplyr::left_join(blqs, addvar(sim.data, bin, 
+                                          "blq", "length(x)", "no", "nblqs"))
+    blqs$blqs <- blqs$blqs/blqs$nblqs * 100
+  }else {
+    blqo <- NULL
+    blqs <- NULL
+  }
+  names(obs1) <- paste0("OBS.", names(obs1))
+  names(s2) <- paste0("SIM.", names(s2))
+  output <- lhcbind(obs1, s2)
+  out1 <- dplyr::left_join(lhmutate(obs.data[, c(sort, "bin", 
+                                                 dv, tad, rtime)], "bin=SIM.bin"), output)
+  if (!is.null(blqo)) {
+    out1 <- dplyr::left_join(lhmutate(blqo, "bin=SIM.bin"), 
+                             out1)
+    out1 <- dplyr::left_join(lhmutate(blqs, "bin=SIM.bin"), 
+                             out1)
+  }
+  out1
+}
 
 
 #' Look for keyword across dataset
