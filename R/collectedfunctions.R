@@ -1,6 +1,154 @@
 #' Look for keyword across dataset
 #'
 #' @param data Data frame 
+#' @keywords vpc_plots()
+#' @export
+#' @examples 
+
+vpc_plots<-function(...){
+  
+  range(output$SIM.bin)
+  out1$SIM.bin<-as.numeric(as.character(out1$SIM.bin))
+  
+  p<-ggplot(out1, aes(x=SIM.bin,group=OBS.variable)) +
+    geom_ribbon(aes(ymin=SIM.low, ymax=SIM.up, fill=SIM.variable, col=SIM.variable, group=SIM.variable), alpha=0.1,col=NA) +
+    geom_line(aes(y=SIM.med, col=SIM.variable, group=SIM.variable), size=1) +
+    geom_line(aes(y=OBS.value, linetype=SIM.variable), size=1) +
+    scale_y_log10()+
+    scale_x_continuous(breaks=seq(0,100,12))+
+    scale_colour_manual(
+      name="Simulated Percentiles\nMedian (lines) 95% CI (areas)",
+      breaks=c("qt05", "qt50", "qt95"),
+      values=c("red", "blue", "red"),
+      labels=c("5%", "50%", "95%")) +
+    scale_fill_manual(
+      name="Simulated Percentiles\nMedian (lines) 95% CI (areas)",
+      breaks=c("qt05", "qt50", "qt95"),
+      values=c("red", "blue", "red"),
+      labels=c("5%", "50%", "95%")) +
+    scale_linetype_manual(
+      name="Observed Percentiles\n(black lines)",
+      breaks=c("qt05", "qt50", "qt95"),
+      values=c("dotted", "solid", "dashed"),
+      labels=c("5%", "50%", "95%")) +
+    guides(
+      fill=guide_legend(order=2),
+      colour=guide_legend(order=2),
+      linetype=guide_legend(order=1)) +
+    theme(legend.position="top",
+          legend.key.width=grid::unit(2, "cm")) +
+    labs(x="Time (h)", y="Concentration (ng/mL)")
+  p+geom_point(aes(y=DV),col="grey")
+  
+  blq<-out1[,c("SIM.bin","blqo","blqs")]
+  blq$SIM.bin<-as.numeric(as.character(blq$SIM.bin))
+  
+  ##EXAMPLE BLQ PLOT
+  ggplot(blq,aes(x=SIM.bin,y=blqo))+
+    geom_point(aes(col="Observed"))+
+    geom_line(aes(col="Observed"))+
+    geom_point(aes(x=SIM.bin,y=blqs,col="Predicted"))+
+    geom_line(aes(x=SIM.bin,y=blqs,col="Predicted"))
+   }
+
+
+#' Compute VPC stats 
+#'
+#' @param obs.data Observed data. Type vpc_plots forbasic R code to be used with the output 
+#' @param sim.data Sim data
+#' @param bin Binning. This should be created in both datasets
+#' @param qt Quantile  
+#' @param sort Sorting as vector 
+#' @param dv Concentration or response.Same name in both datasets   
+#' @param tad Time after dose. In obs.data
+#' @param rtime Time after first dose. In obs.data
+#' @param blq LLOQ. Could be single value or vector. If vector, both datasets should have the same variable name. This will compute the % of BLQ for each bin.
+#' @param replicate Replicate in sim.data only
+#' @param pred.corr Pred-corrected. ex: C("PRED","lin") use the column PRED and corrected in linear scale or log for log scale
+#' @keywords lhvpc_stat()
+#' @export
+#' @examples 
+
+lhvpc_stat<-function(obs.data=obs,
+                     sim.data=sim,
+                     bin="bin",
+                     qt=c(0.025,0.5,0.95),
+                     sort=NULL,
+                     dv="DV",
+                     tad="TAD",
+                     rtime="IVAR",
+                     blq=NULL,
+                     replicate="REPLICATE",
+                     pred.corr=NULL){
+  if(!is.null(pred.corr)){
+    medpred<-median(obs.data[,pred.corr[1]])
+    if(pred.corr[2]=="lin"){
+      obs.data[,dv]<-obs.data[,dv]*medpred/obs.data[,pred.corr[1]]
+    }else{obs.data[,dv]<-obs.data[,dv]+medpred-obs.data[,pred.corr[1]]}
+  }else{obs.data[,dv]<-obs.data[,dv]} 
+  var<-NULL
+  for(i in qt){
+    namqt<-paste0("qt",i*100)
+    var<-c(var,namqt)
+    if(i==qt[1]){
+      obs1<-addvar(obs.data,c(sort,"bin"),dv,"quantile(x,i)","no",namqt)}else{
+        obs1<-dplyr::left_join(obs1,addvar(obs.data,c(sort,"bin"),dv,"quantile(x,i)","no",namqt))}
+  }
+  obs1<-lhlong(obs1,var)
+  head(obs)
+  if(!is.null(pred.corr)){
+    medpred<-median(sim.data[,pred.corr[1]])
+    if(pred.corr[2]=="lin"){
+      sim.data[,dv]<-sim.data[,dv]*medpred/sim.data[,pred.corr[1]]
+    }else{sim.data[,dv]<-sim.data[,dv]+medpred-sim.data[,pred.corr[1]]}
+  }else{sim.data[,dv]<-sim.data[,dv]}  
+  var<-NULL
+  for(i in qt){
+    namqt<-paste0("qt",i*100)
+    var<-c(var,namqt)
+    if(i==qt[1]){
+      s1<-addvar(sim.data,c(sort,bin,replicate),dv,"quantile(x,i)","no",namqt)}else{
+        s1<-dplyr::left_join(s1,addvar(sim.data,c(sort,bin,replicate),dv,"quantile(x,i)","no",namqt))}
+  }
+  s1<-lhlong(s1,var)
+  
+  namvar<-c("low","med","up")
+  for(i in 1:3){
+    if(i==1) { 
+      s2<-addvar(s1,c(bin,"variable"),"value","quantile(x,qt[i])","no",namvar[1])}else{
+        s2<-dplyr::left_join(s2,addvar(s1,c(bin,"variable"),"value","quantile(x,qt[i])","no",namvar[i]))}
+  }
+  
+  if(!is.null(blq)){
+    if(is.numeric(blq)){
+      obs.data$blq<-obs.data[,dv]<=blq
+      sim.data$blq<-sim.data[,dv]<=blq
+    }else{
+      obs.data$blq<-obs.data[,dv]<=obs.data[,blq]
+      sim.data$blq<-sim.data[,dv]<=sim.data[,blq]
+    }
+    blqo<-addvar(obs.data,bin,"blq","sum(x)","no","blqo")
+    blqo<-dplyr::left_join(blqo,addvar(obs.data,bin,"blq","length(x)","no","nblqo"))
+    blqo$blqo<-blqo$blqo/blqo$nblqo*100
+    blqs<-addvar(sim.data,bin,"blq","sum(x)","no","blqs")
+    blqs<-dplyr::left_join(blqs,addvar(sim.data,bin,"blq","length(x)","no","nblqs"))
+    blqs$blqs<-blqs$blqs/blqs$nblqs*100
+  }else{blqo<-NULL;blqs<-NULL}
+  
+  names(obs1)<-paste0("OBS.",names(obs1))
+  names(s2)<-paste0("SIM.",names(s2))
+  output<-lhcbind(obs1,s2)
+  out1<-dplyr::left_join(lhmutate(obs.data[,c(sort,"bin",dv,tad,rtime)],"bin=SIM.bin"),output)
+  if(!is.null(blqo)){
+    out1<-dplyr::left_join(lhmutate(blqo,"bin=SIM.bin"),out1)
+    out1<-dplyr::left_join(lhmutate(blqs,"bin=SIM.bin"),out1)
+  }
+  out1}
+
+
+#' Look for keyword across dataset
+#'
+#' @param data Data frame 
 #' @param var Variable to be cut
 #' @param file.or.path File path ("xxx/zzz/") or data frame (c("lb","dm")) 
 #' @param fpattern File extention: ex. "csv", all csv file in folder will be used  
