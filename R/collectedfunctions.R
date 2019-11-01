@@ -71,20 +71,21 @@ vpc_plots<-function(...){
 
 lhvpc_stat<-function (obs.data = obs, sim.data = sim, bin = "bin", qt = c(0.025, 
                                                                           0.5, 0.95), sort = NULL, dv = "DV", tad = "TAD", rtime = "IVAR", 
-                      blq = NULL, replicate = "REPLICATE", pred.corr = NULL) {
-  
+                      blq = NULL, replicate = "REPLICATE", pred.corr = NULL) 
+{
   if (!is.null(pred.corr)) {
     medpred <- median(obs.data[, pred.corr[1]])
     if (pred.corr[2] == "lin") {
       obs.data[, dv] <- obs.data[, dv] * medpred/obs.data[, 
                                                           pred.corr[1]]
-    } else {
+    }  else {
       obs.data[, dv] <- obs.data[, dv] + medpred - obs.data[, 
                                                             pred.corr[1]]
     }
-  }else {
+  } else {
     obs.data[, dv] <- obs.data[, dv]
   }
+  
   var <- NULL
   for (i in qt) {
     namqt <- paste0("qt", i * 100)
@@ -96,7 +97,6 @@ lhvpc_stat<-function (obs.data = obs, sim.data = sim, bin = "bin", qt = c(0.025,
       obs1 <- dplyr::left_join(obs1, addvar(obs.data, c(sort,"bin"), dv, "quantile(x,i)", "no", namqt))
     }
   }
-  
   obs1 <- lhlong(obs1, var)
   
   if (!is.null(pred.corr)) {
@@ -108,7 +108,7 @@ lhvpc_stat<-function (obs.data = obs, sim.data = sim, bin = "bin", qt = c(0.025,
       sim.data[, dv] <- sim.data[, dv] + medpred - sim.data[, 
                                                             pred.corr[1]]
     }
-  }else {
+  } else {
     sim.data[, dv] <- sim.data[, dv]
   }
   
@@ -119,28 +119,27 @@ lhvpc_stat<-function (obs.data = obs, sim.data = sim, bin = "bin", qt = c(0.025,
     if (i == qt[1]) {
       s1 <- addvar(sim.data, c(sort, bin, replicate), dv, 
                    "quantile(x,i)", "no", namqt)
-    }else {
-      s1 <- dplyr::left_join(s1, addvar(sim.data, c(sort,bin, replicate), dv, "quantile(x,i)", "no", namqt))
+    } else {
+      s1 <- dplyr::left_join(s1, addvar(sim.data, c(sort, 
+                                                    bin, replicate), dv, "quantile(x,i)", "no", namqt))
     }
   }
-  
   s1 <- lhlong(s1, var)
   namvar <- c("low", "med", "up")
   for (j in 1:3) {
     if (j == 1) {
       s2 <- addvar(s1, c(bin, "variable"), "value", "quantile(x,qt[j])", 
                    "no", namvar[1])
-    } else {
+    }  else {
       s2 <- dplyr::left_join(s2, addvar(s1, c(bin, "variable"), 
                                         "value", "quantile(x,qt[j])", "no", namvar[j]))
     }
   }
-  
   if (!is.null(blq)) {
     if (is.numeric(blq)) {
       obs.data$blq <- obs.data[, dv] <= blq
       sim.data$blq <- sim.data[, dv] <= blq
-    } else {
+    }  else {
       obs.data$blq <- obs.data[, dv] <= obs.data[, blq]
       sim.data$blq <- sim.data[, dv] <= sim.data[, blq]
     }
@@ -154,7 +153,7 @@ lhvpc_stat<-function (obs.data = obs, sim.data = sim, bin = "bin", qt = c(0.025,
     blqs <- dplyr::left_join(blqs, addvar(sim.data, bin, 
                                           "blq", "length(x)", "no", "nblqs"))
     blqs$blqs <- blqs$blqs/blqs$nblqs * 100
-  }else {
+  } else {
     blqo <- NULL
     blqs <- NULL
   }
@@ -168,7 +167,7 @@ lhvpc_stat<-function (obs.data = obs, sim.data = sim, bin = "bin", qt = c(0.025,
                              out1)
     out1 <- dplyr::left_join(lhmutate(blqs, "bin=SIM.bin"), 
                              out1)
-  }
+  }else{out1<-out1}
   out1
 }
 
