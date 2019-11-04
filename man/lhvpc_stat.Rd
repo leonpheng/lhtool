@@ -16,7 +16,7 @@ lhvpc_stat(obs.data = obs, sim.data = sim, bin = "bin",
 
 \item{bin}{Binning. This should be created in both datasets}
 
-\item{prob}{Quantile}
+\item{prob}{Quantile probability.}
 
 \item{sort}{Sorting as vector}
 

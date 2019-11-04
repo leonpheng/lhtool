@@ -57,7 +57,7 @@ vpc_plots<-function(...){
 #' @param obs.data Observed data. Type vpc_plots forbasic R code to be used with the output 
 #' @param sim.data Sim data
 #' @param bin Binning. This should be created in both datasets
-#' @param prob Quantile  
+#' @param prob Quantile probability.  
 #' @param sort Sorting as vector 
 #' @param dv Concentration or response.Same name in both datasets   
 #' @param tad Time after dose. In obs.data
