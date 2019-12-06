@@ -69,7 +69,7 @@ vpc_plots<-function(...){
 #' @export
 #' @examples 
 
-lhvpc_stat<-function (obs.data = obs, sim.data = sim, bin = "bin", prob = c(0.025, 
+lhvpc_stat<-function (obs.data = obs, sim.data = sim, bin = "bin", prob = c(0.05, 
                                                                             0.5, 0.95), sort = NULL, dv = "DV", tad = "TAD", rtime = "IVAR", 
                       blq = NULL, replicate = "REPLICATE", pred.corr = NULL) 
 {
@@ -190,7 +190,7 @@ lhvpc_stat<-function (obs.data = obs, sim.data = sim, bin = "bin", prob = c(0.02
 
 lhseek<-function(var,file.or.path,fpattern=NULL,filename=NULL){
   if(!is.null(fpattern)){
-    list<-dir(file.or.path)[grep(fpattern,dir(d))]
+    list<-dir(file.or.path)[grep(fpattern,dir(file.or.path))]
   }
   if(!is.null(filename)){
     list=filename}
@@ -249,11 +249,11 @@ lhcut<-function(data,var,breaks,labels="fancy",right=F,newvar="default"){
       lab22<-c(lab22,paste(lab4[i],"&",lab3[i+1]))
     }
     if(right){
-      labels<-c(lab3[1],lab22,lab4[length(lab4)])}else{ 
-        labels<-c(lab1[1],lab11,lab2[length(lab2)])
-      } }
+      labels1<-c(lab3[1],lab22,lab4[length(lab4)])}else{ 
+        labels1<-c(lab1[1],lab11,lab2[length(lab2)])
+      } }else{labels1=labels}
   
-  data[,nvar]<-cut(data[,var],breaks=brk,labels=labels,right=right)
+  data[,nvar]<-cut(data[,var],breaks=brk,labels=labels1,right=right)
   print(addvar(data,nvar,var,"range(x)","no"))
   data}
 

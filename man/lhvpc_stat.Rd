@@ -5,7 +5,7 @@
 \title{Compute VPC stats}
 \usage{
 lhvpc_stat(obs.data = obs, sim.data = sim, bin = "bin",
-  prob = c(0.025, 0.5, 0.95), sort = NULL, dv = "DV", tad = "TAD",
+  prob = c(0.05, 0.5, 0.95), sort = NULL, dv = "DV", tad = "TAD",
   rtime = "IVAR", blq = NULL, replicate = "REPLICATE",
   pred.corr = NULL)
 }
