@@ -188,37 +188,105 @@ lhvpc_stat<-function (obs.data = obs, sim.data = sim, bin = "bin", prob = c(0.05
 #' @export
 #' @examples 
 
-lhseek<-function(var,file.or.path,fpattern=NULL,filename=NULL){
-  if(!is.null(fpattern)){
-    list<-dir(file.or.path)[grep(fpattern,dir(file.or.path))]
-  }
-  if(!is.null(filename)){
-    list=filename}
-  if(is.null(filename)&is.null(fpattern)){
-    list=file.or.path
+
+
+
+lhseek<-function (var, file.or.path, fpattern = NULL, filename = NULL)
+  
+{
+  
+  if (!is.null(fpattern)) {
+    
+    list <- dir(file.or.path)[grep(fpattern, dir(file.or.path))]
+    
   }
   
-  out<-NULL
-  for(i in tolower(var)){
-    for(j in list){
-      b <- function(x) {}
-      if(!is.null(fpattern)|!is.null(fpattern)){
-        d<-file.or.path
-        xt<-substring(j,nchar(j)-2)
-        rt<-c("read.csv","haven::read_xpt","haven::read_sas")
-        rt<-rt[grep(xt,rt)]
-        txt<-paste0(rt,"(file.path(d,j))")}else{txt<-j}
-      body(b) <- parse(text=txt)
-      inp<-as.data.frame(b())
-      for(z in names(inp)){
-        if(length(tolower(z)[grep(i,tolower(z))])>0){
-          xx<-paste0(j,":",z)
-        }else{xx=NULL}
-        if(length(unique(inp[,z][grep(i,tolower(inp[,z]))]))>0){
-          out1<-paste0(xx,j,";",z,unique(inp[,z][grep(i,inp[,z])]),":",i)
-        }else{out1<-c(xx,NULL)}
-        out<-c(out,out1)}
-      print(out)}}}
+  if (!is.null(filename)) {
+    
+    list = filename
+    
+  }
+  
+  if (is.null(filename) & is.null(fpattern)) {
+    
+    list = file.or.path
+    
+  }
+  
+  out <- NULL
+  
+  for (i in tolower(var)) {
+    
+    for (j in list) {
+      
+      b <- function(x) {
+        
+      }
+      
+      if (!is.null(filename) | !is.null(fpattern)) {
+        
+        d <- file.or.path
+        
+        xt <- substring(j, nchar(j) - 2)
+        
+        if(xt=="dat"){xt="sas"}else{xt=xt}
+        
+        rt <- c("read.csv", "haven::read_xpt", "haven::read_sas")
+        
+        rt <- rt[grep(xt, rt)]
+        
+        txt <- paste0(rt, "(file.path(d,j))")
+        
+      } else {
+        
+        txt <- j
+        
+      }
+      
+      body(b) <- parse(text = txt)
+      
+      inp <- as.data.frame(b())
+      
+      for (z in names(inp)) {
+        
+        if (length(tolower(z)[grep(i, tolower(z))]) >
+            
+            0) {
+          
+          xx <- paste0(j, ":", z)
+          
+        } else {
+          
+          xx = NULL
+          
+        }
+        
+        if (length(unique(inp[, z][grep(i, tolower(inp[,
+                                                       
+                                                       z]))])) > 0) {
+          
+          out1 <- paste0(xx, j, ";", z, unique(inp[,
+                                                   
+                                                   z][grep(i, inp[, z])]), ":", i)
+          
+        } else {
+          
+          out1 <- c(xx, NULL)
+          
+        }
+        
+        out <- c(out, out1)
+        
+      }
+      
+      print(out)
+      
+    }
+    
+  }
+  
+}
+
 
 
 
