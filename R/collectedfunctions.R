@@ -490,19 +490,6 @@ findiff<-function(dat1,dat2){
   out3<-lhcbind(out3,row1)
   out3 }
 
-#' date and time format funtion
-#'Join two datasets and print report of joining procedure
-#' @param dattime Date and time data ex: "%d-%b-%y %H:%M:%S" 
-#' @keywords d010101()
-#' @export
-#' @examples
-#' d010101()
-d010101<-function(dattime){
-  #%Y=year 2000;%B=January; %b=Jan; %m=month 01;%H= 24-H; %p= AM/PM  
-  strftime(strptime(dattime, format ="%d-%b-%y %H:%M:%S",tz = "GMT"), format = "%Y-%m-%d %H:%M", tz = "GMT") 
-}
-
-
 
 #' lhjoin funtion
 #'Join two datasets and print report of joining procedure
