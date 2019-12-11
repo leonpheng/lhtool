@@ -2,14 +2,14 @@
 % Please edit documentation in R/collectedfunctions.R
 \name{vpc_plots}
 \alias{vpc_plots}
-\title{Look for keyword across dataset}
+\title{template for VPC}
 \usage{
 vpc_plots(...)
 }
 \arguments{
-\item{data}{Data frame}
+\item{data}{Data frame Use the codes below as template}
 }
 \description{
-Look for keyword across dataset
+template for VPC
 }
 \keyword{vpc_plots()}

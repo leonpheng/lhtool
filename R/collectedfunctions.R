@@ -1,6 +1,1410 @@
-#' Look for keyword across dataset
+#' Covariate plots function
 #'
-#' @param data Data frame 
+#' @param data Data frame. Use the codes below as template 
+#' @keywords cov_plots()
+#' @export
+#' @examples
+cov_fn<-function(...){
+library(grid)
+require(gpairs)
+gpairs<-function (x, upper.pars = list(scatter = "points", conditional = "barcode", 
+                                       mosaic = "mosaic"), lower.pars = list(scatter = "points", 
+                                                                             conditional = "boxplot", mosaic = "mosaic"), diagonal = "default", 
+                  outer.margins = list(bottom = unit(2, "lines"), left = unit(2, 
+                                                                              "lines"), top = unit(2, "lines"), right = unit(2, "lines")), 
+                  xylim = NULL, outer.labels = NULL, outer.rot = c(0, 90), 
+                  gap = 0.05, buffer = 0.02, reorder = NULL, cluster.pars = NULL, 
+                  stat.pars = NULL, scatter.pars = NULL, bwplot.pars = NULL, 
+                  stripplot.pars = NULL, barcode.pars = NULL, mosaic.pars = NULL, 
+                  axis.pars = NULL, diag.pars = NULL, whatis = FALSE) 
+{
+  if (!is.data.frame(x)) {
+    if (is.matrix(x)) 
+      x <- as.data.frame(x)
+    else stop("What did you give me? You might want to use Excel. (Only one column in argument to gpairs.\n\n")
+  }
+  zc <- function(x) length(unique(x)) <= 1
+  if (any(sapply(x, zc), na.rm = TRUE)) {
+    warning(paste(sum(sapply(x, zc), na.rm = TRUE), "columns with less than two distinct values eliminated"))
+    x <- x[, !(sapply(x, zc))]
+  }
+  if (!is.null(lower.pars) & !is.list(lower.pars)) {
+    warning("lower.pars is not a list, proceed with caution.")
+  }
+  if (!is.null(upper.pars) & !is.list(upper.pars)) {
+    warning("upper.pars is not a list, proceed with caution.")
+  }
+  if (!is.null(reorder)) {
+    if (pmatch(reorder, "cluster", nomatch = FALSE)) {
+      if (is.null(cluster.pars)) {
+        cluster.pars <- list(dist.method = "euclidean", 
+                             hclust.method = "complete")
+      }
+      x.num <- as.matrix(as.data.frame(lapply(x, as.numeric)))
+      x.clust <- hclust(dist(t(x.num), method = cluster.pars$dist.method), 
+                        method = cluster.pars$hclust.method)
+      x <- x[, x.clust$order]
+    }
+  }
+  if (is.null(lower.pars$scatter.pars)) {
+    lower.pars$scatter.pars <- "points"
+  }
+  if (is.null(lower.pars$conditional)) {
+    lower.pars$conditional <- "boxplot"
+  }
+  if (is.null(lower.pars$mosaic)) {
+    lower.pars$mosaic <- "mosaic"
+  }
+  if (is.null(upper.pars$scatter.pars)) {
+    upper.pars$scatter.pars <- "points"
+  }
+  if (is.null(upper.pars$conditional)) {
+    upper.pars$conditional <- "barcode"
+  }
+  if (is.null(upper.pars$mosaic)) {
+    upper.pars$mosaic <- "mosaic"
+  }
+  if (!is.list(outer.margins)) {
+    if (length(outer.margins) == 4) {
+      if (is.unit(outer.margins[1])) {
+        outer.margins <- list(bottom = outer.margins[1], 
+                              left = outer.margins[2], top = outer.margins[3], 
+                              right = outer.margins[4])
+      } else {
+        outer.margins <- list(bottom = unit(outer.margins[1], 
+                                            "lines"), left = unit(outer.margins[2], "lines"), 
+                              top = unit(outer.margins[3], "lines"), right = unit(outer.margins[4], 
+                                                                                  "lines"))
+      }
+    } else {
+      stop("outer.margins are not valid.")
+    }
+  }
+  if (is.null(outer.labels)) {
+    outer.labels$top <- rep(FALSE, ncol(x))
+    outer.labels$top[seq(2, ncol(x), by = 2)] <- TRUE
+    outer.labels$left <- rep(FALSE, ncol(x))
+    outer.labels$left[seq(2, ncol(x), by = 2)] <- TRUE
+    outer.labels$right <- !outer.labels$left
+    outer.labels$bottom <- !outer.labels$top
+  } else {
+    if (pmatch(as.character(outer.labels), "all", nomatch = FALSE)) {
+      all.labeling <- TRUE
+    } else if (pmatch(as.character(outer.labels), "none", nomatch = FALSE)) {
+      all.labeling <- FALSE
+    } else {
+      stop("argument to outer.labels not understood\n")
+    }
+    outer.labels <- NULL
+    outer.labels$top <- rep(all.labeling, ncol(x))
+    outer.labels$left <- rep(all.labeling, ncol(x))
+    outer.labels$bottom <- rep(all.labeling, ncol(x))
+    outer.labels$right <- rep(all.labeling, ncol(x))
+  }
+  if (is.null(stat.pars$fontsize)) {
+    stat.pars$fontsize <- 7
+  }
+  if (is.null(stat.pars$signif)) {
+    stat.pars$signif <- 0.05
+  }
+  if (is.null(stat.pars$verbose)) {
+    stat.pars$verbose <- FALSE
+  }
+  if (is.null(stat.pars$use.color)) {
+    stat.pars$use.color <- TRUE
+  }
+  if (is.null(stat.pars$missing)) {
+    stat.pars$missing <- "missing"
+  }
+  if (is.null(stat.pars$just)) {
+    stat.pars$just <- "centre"
+  }
+  if (is.null(scatter.pars$pch)) {
+    scatter.pars$pch <- 1
+  }
+  if (is.null(scatter.pars$size)) {
+    scatter.pars$size <- unit(0.25, "char")
+  }
+  if (is.null(scatter.pars$col)) {
+    scatter.pars$col <- "black"
+  }
+  if (is.null(scatter.pars$plotpoints)) {
+    scatter.pars$plotpoints <- TRUE
+  }
+  if (is.null(axis.pars$n.ticks)) {
+    axis.pars$n.ticks <- 5
+  }
+  if (is.null(axis.pars$fontsize)) {
+    axis.pars$fontsize <- 9
+  }
+  if (axis.pars$n.ticks < 3) {
+    axis.pars$n.ticks <- 3
+    warning("Fewer than 3 axis ticks might cause problems.")
+  }
+  if (is.null(diag.pars$fontsize)) {
+    diag.pars$fontsize <- 9
+  }
+  if (is.null(diag.pars$show.hist)) {
+    diag.pars$show.hist <- TRUE
+  }
+  if (is.null(diag.pars$hist.color)) {
+    diag.pars$hist.color <- "black"
+  }
+  if (is.null(stripplot.pars$pch)) {
+    stripplot.pars$pch <- 1
+  }
+  if (is.null(stripplot.pars$size)) {
+    stripplot.pars$size <- unit(0.5, "char")
+  }
+  if (is.null(stripplot.pars$col)) {
+    stripplot.pars$col <- "black"
+  }
+  if (is.null(stripplot.pars$jitter)) {
+    stripplot.pars$jitter <- FALSE
+  }
+  if (is.null(barcode.pars$nint)) {
+    barcode.pars$nint <- 0
+  }
+  if (is.null(barcode.pars$ptsize)) {
+    barcode.pars$ptsize <- unit(0.25, "char")
+  }
+  if (is.null(barcode.pars$ptpch)) {
+    barcode.pars$ptpch <- 1
+  }
+  if (is.null(barcode.pars$bcspace)) {
+    barcode.pars$bcspace <- NULL
+  }
+  if (is.null(barcode.pars$use.points)) {
+    barcode.pars$use.points <- FALSE
+  }
+  if (is.null(mosaic.pars$gp_labels)) {
+    mosaic.pars$gp_labels <- gpar(fontsize = 9)
+  }
+  if (is.null(mosaic.pars$gp_args)) {
+    mosaic.pars$gp_args <- list()
+  }
+  draw.axis <- function(x, y, axis.pars, xpos, ypos, cat.labels = NULL, 
+                        horiz = NULL, xlim = NULL, ylim = NULL) {
+    x <- as.numeric(x)
+    y <- as.numeric(y)
+    if (is.null(xlim)) {
+      px <- pretty(x, axis.pars$n.ticks)
+      px <- px[px > min(x, na.rm = TRUE) & px < max(x, 
+                                                    na.rm = TRUE)]
+    } else {
+      px <- pretty(xlim, axis.pars$n.ticks)
+      px <- px[px > min(xlim, na.rm = TRUE) & px < max(xlim, 
+                                                       na.rm = TRUE)]
+    }
+    if (is.null(ylim)) {
+      py <- pretty(y, axis.pars$n.ticks)
+      py <- py[py > min(y, na.rm = TRUE) & py < max(y, 
+                                                    na.rm = TRUE)]
+    } else {
+      py <- pretty(ylim, axis.pars$n.ticks)
+      py <- py[py > min(ylim, na.rm = TRUE) & py < max(ylim, 
+                                                       na.rm = TRUE)]
+    }
+    k <- length(cat.labels)
+    if (!is.null(xpos)) {
+      if (!is.null(cat.labels) && !horiz) {
+        grid.text(cat.labels, x = unit(1:k, "native"), 
+                  y = unit(rep(1 * (1 - xpos), k), "npc") + unit(rep(-1 * 
+                                                                       xpos + 1 * (1 - xpos), k), "lines"), rot = outer.rot[1], 
+                  gp = gpar(fontsize = axis.pars$fontsize))
+      } else grid.xaxis(at = px, gp = gpar(fontsize = axis.pars$fontsize), 
+                        main = xpos)
+    }
+    if (!is.null(ypos)) {
+      if (!is.null(cat.labels) && horiz) {
+        grid.text(cat.labels, y = unit(1:k, "native"), 
+                  x = unit(rep(1 * (1 - ypos), k), "npc") + unit(rep(-1 * 
+                                                                       ypos + 1 * (1 - ypos), k), "lines"), rot = outer.rot[2], 
+                  gp = gpar(fontsize = axis.pars$fontsize))
+      }else grid.yaxis(at = py, gp = gpar(fontsize = axis.pars$fontsize), 
+                       main = ypos)
+    }
+  }
+  qq.panel <- function(x, y, scatter.pars, axis.pars, xpos, 
+                       ypos, xlim, ylim) {
+    pushViewport(viewport(xscale = xlim, yscale = ylim))
+    draw.axis(x, y, axis.pars, xpos, ypos, NULL, NULL, xlim, 
+              ylim)
+    popViewport(1)
+    pushViewport(viewport(xscale = xlim, yscale = ylim, clip = TRUE))
+    grid.rect(gp = gpar(fill = scatter.pars$frame.fill, col = scatter.pars$border.col))
+    x <- sort(x)
+    y <- sort(y)
+    grid.lines(unit(x, "native"), unit(y, "native"))
+    popViewport(1)
+  }
+  scatterplot.panel <- function(x, y, type, scatter.pars, axis.pars, 
+                                xpos, ypos, xylim) {
+    if (is.null(xylim)) {
+      xlim <- range(x, na.rm = TRUE) + c(-buffer * (max(x, 
+                                                        na.rm = TRUE) - min(x, na.rm = TRUE)), buffer * 
+                                           (max(x, na.rm = TRUE) - min(x, na.rm = TRUE)))
+      ylim <- range(y, na.rm = TRUE) + c(-buffer * (max(y, 
+                                                        na.rm = TRUE) - min(y, na.rm = TRUE)), buffer * 
+                                           (max(y, na.rm = TRUE) - min(y, na.rm = TRUE)))
+    }    else {
+      xlim <- xylim
+      ylim <- xylim
+    }
+    pushViewport(viewport(xscale = xlim, yscale = ylim))
+    draw.axis(x, y, axis.pars, xpos, ypos, NULL, NULL, xlim, 
+              ylim)
+    popViewport(1)
+    pushViewport(viewport(xscale = xlim, yscale = ylim, clip = TRUE))
+    grid.rect(gp = gpar(fill = scatter.pars$frame.fill, col = scatter.pars$border.col))
+    if (scatter.pars$plotpoints & (type == "points" || type == 
+                                   "lm" || type == "ci" || type == "symlm" || type == 
+                                   "loess")) {
+      grid.points(x, y, pch = scatter.pars$pch, size = scatter.pars$size, 
+                  gp = gpar(col = scatter.pars$col))
+    }
+    if (type == "lm") {
+      xy.lm <- lm(y ~ x)
+      panel.abline(xy.lm$coef[1], xy.lm$coef[2], col = "red", 
+                   lwd = 2)
+    }
+    if (type == "ci") {
+      xy.lm <- lm(y ~ x)
+      xy <- data.frame(x = seq(min(x, na.rm = TRUE), max(x, 
+                                                         na.rm = TRUE), length.out = 20))
+      yhat <- predict(xy.lm, newdata = xy, interval = "confidence")
+      ci <- data.frame(lower = yhat[, "lwr"], upper = yhat[, 
+                                                           "upr"])
+      grid.lines(x = c(xy$x), y = c(ci$lower), default.units = "native")
+      grid.lines(x = c(xy$x), y = c(ci$upper), default.units = "native")
+      grid.polygon(x = c(xy$x, xy$x[length(xy$x):1]), y = c(ci$lower, 
+                                                            ci$upper[length(ci$upper):1]), gp = gpar(fill = "grey"), 
+                   default.units = "native")
+    }
+    if (type == "loess") {
+      junk <- try(panel.loess(x, y, color = "red", span = 1))
+      if (class(junk) == "try-error") 
+        warning("An error in loess occurred and was ignored; no line was plotted.")
+    }
+    if (type == "symlm") {
+      pcs <- try(prcomp(cbind(x, y)))
+      if (class(pcs) == "try-error") 
+        warning("An error in symlm occurred and was ignored; no line was plotted.")
+      else {
+        slope <- abs(pcs$rotation[1, 2]/pcs$rotation[1, 
+                                                     1])
+        if (cor(x, y) < 0) 
+          slope <- -1 * slope
+        panel.abline(pcs$center[2] - slope * pcs$center[1], 
+                     slope, col = "blue")
+      }
+    }
+    if (type == "corrgram") {
+      pear.test <- cor.test(x, y, method = "pearson", alternative = "two.sided")
+      corr <- format(pear.test$estimate, digits = 2)
+      if (as.numeric(corr) > 0) {
+        panel.fill(col = hsv(h = 0.5, s = abs(as.numeric(corr)), 
+                             v = 1), border = hsv(h = 0.5, s = abs(as.numeric(corr)), 
+                                                  v = 1))
+        grid.lines(x = unit(c(0, 1), "npc"), y = unit(c(0, 
+                                                        1), "npc"), gp = gpar(col = "white", lwd = 2))
+      } else {
+        panel.fill(col = hsv(h = 0, s = abs(as.numeric(corr)), 
+                             v = 1), border = hsv(h = 0, s = abs(as.numeric(corr)), 
+                                                  v = 1))
+        grid.lines(x = unit(c(0, 1), "npc"), y = unit(c(1, 
+                                                        0), "npc"), gp = gpar(col = "white", lwd = 2))
+      }
+    }
+    if (type == "qqplot") {
+      qq.panel(x, y, scatter.pars, axis.pars, xpos, ypos, 
+               xlim, ylim)
+    }
+    if (type == "stats") {
+      complete.obs <- nrow(na.omit(cbind(x, y)))
+      missing <- length(x) - complete.obs
+      pear.test <- cor.test(x, y, method = "pearson", alternative = "two.sided")
+      corr <- sprintf("%03.2f", pear.test$estimate)
+      rho.test <- cor.test(x, y, method = "spearman", alternative = "two.sided")
+      tau.test <- cor.test(x, y, method = "kendall", alternative = "two.sided")
+      rho <- sprintf("%03.2f", rho.test$estimate)
+      tau <- sprintf("%03.2f", tau.test$estimate)
+      xy.lm <- lm(y ~ x)
+      r2 <- sprintf("%03.2f", summary(xy.lm)$r.squared)
+      p <- sprintf("%06.4f", pf(q = as.numeric(summary(xy.lm)$fstatistic)[1], 
+                                df1 = as.numeric(summary(lm(xy.lm))$fstatistic)[2], 
+                                df2 = as.numeric(summary(lm(xy.lm))$fstatistic)[3], 
+                                lower.tail = FALSE))
+      bonfp <- stat.pars$signif/(N * (N - 1))/2
+      sig <- 1
+      sigrho <- NULL
+      sigtau <- NULL
+      sigcor <- NULL
+      sigp <- NULL
+      if (pear.test$p.value < bonfp) {
+        sig <- sig + 1
+        sigcor <- "*"
+      }
+      if (rho.test$p.value < bonfp) {
+        sig <- sig + 1
+        sigrho <- "*"
+      }
+      if (tau.test$p.value < bonfp) {
+        sig <- sig + 1
+        sigtau <- "*"
+      }
+      if (as.numeric(p) < bonfp) {
+        sig <- sig + 1
+        sigp <- "*"
+      }
+      if (mean(as.numeric(rho), as.numeric(tau), as.numeric(corr)) > 
+          0) {
+        text.color <- "black"
+        if (sig == 1) 
+          box.color <- 0.5
+        else if (sig > 1 && sig < 5) 
+          box.color <- 0.75
+        else if (sig == 5) 
+          box.color <- 1
+      } else if (mean(as.numeric(rho), as.numeric(tau), as.numeric(corr)) < 
+                 0) {
+        text.color <- "white"
+        if (sig == 1) 
+          box.color <- 0.5
+        else if (sig > 1 && sig < 5) 
+          box.color <- 0.25
+        else if (sig == 5) 
+          box.color <- 0
+      }
+      if (!stat.pars$use.color) {
+        panel.fill(col = grey(box.color), border = grey(box.color))
+      } else {
+        text.color <- "black"
+        if (as.numeric(corr) > 0) {
+          panel.fill(col = hsv(h = 0.5, s = abs(as.numeric(corr)), 
+                               v = 1), border = hsv(h = 0.5, s = abs(as.numeric(corr)), 
+                                                    v = 1))
+        } else {
+          panel.fill(col = hsv(h = 0, s = abs(as.numeric(corr)), 
+                               v = 1), border = hsv(h = 0, s = abs(as.numeric(corr)), 
+                                                    v = 1))
+        }
+      }
+      if (!is.na(stat.pars$verbose)) {
+        if (stat.pars$verbose == TRUE) {
+          # grid.text(bquote(rho == .(rho) * .(sigrho)), 
+          #          x = 0.5, y = 0.9, just = stat.pars$just, 
+          #       gp = gpar(fontsize = stat.pars$fontsize, 
+          #                col = text.color))
+          # grid.text(bquote(tau == .(tau) * .(sigtau)), 
+          #          x = 0.5, y = 0.7, just = stat.pars$just, 
+          #         gp = gpar(fontsize = stat.pars$fontsize, 
+          #                  col = text.color))
+          grid.text(paste("r=", corr, sigcor, sep = ""), 
+                    x = 0.5, y = 0.5, just = stat.pars$just, 
+                    gp = gpar(fontsize = stat.pars$fontsize, 
+                              col = text.color))
+          grid.text(paste("p=", p, sigp, sep = ""), x = 0.5, 
+                    y = 0.3, just = stat.pars$just, gp = gpar(fontsize = stat.pars$fontsize, 
+                                                              col = text.color))
+          if (missing > 0) 
+            grid.text(paste(missing, stat.pars$missing), 
+                      x = 0.5, y = 0.1, just = stat.pars$just, 
+                      gp = gpar(fontsize = stat.pars$fontsize, 
+                                col = "red"))
+        } else {
+          
+          grid.text(paste(corr, sigcor, sep = ""), x = 0.5, 
+                    y = 0.7, just = stat.pars$just, gp = gpar(fontsize = stat.pars$fontsize, 
+                                                              col = text.color))
+          if (missing > 0) 
+            grid.text(paste(missing, "missing"), x = 0.5, 
+                      y = 0.3, just = stat.pars$just, gp = gpar(fontsize = stat.pars$fontsize, 
+                                                                col = text.color))
+        }
+      }
+    }
+    popViewport(1)
+  }
+  mosaic.panel <- function(x, y, mosaic.pars, axis.pars, xpos, 
+                           ypos) {
+    if (!is.null(xpos) & !is.null(ypos)) {
+      strucplot(table(y, x), margins = c(0, 0, 0, 0), newpage = FALSE, 
+                pop = FALSE, keep_aspect_ratio = FALSE, shade = mosaic.pars$shade, 
+                legend = FALSE, gp = mosaic.pars$gp, gp_args = mosaic.pars$gp_args, 
+                labeling_args = list(tl_labels = c(xpos, !ypos), 
+                                     gp_labels = mosaic.pars$gp_labels, varnames = c(FALSE, 
+                                                                                     FALSE), rot_labels = c(outer.rot, outer.rot)))
+    }  else {
+      if (is.null(xpos) & is.null(ypos)) {
+        strucplot(table(y, x), margins = c(0, 0, 0, 0), 
+                  shade = mosaic.pars$shade, legend = FALSE, 
+                  gp = mosaic.pars$gp, gp_args = mosaic.pars$gp_args, 
+                  newpage = FALSE, pop = FALSE, keep_aspect_ratio = FALSE, 
+                  labeling = NULL)
+      }  else {
+        if (is.null(xpos)) {
+          strucplot(table(y, x), margins = c(0, 0, 0, 
+                                             0), newpage = FALSE, pop = FALSE, keep_aspect_ratio = FALSE, 
+                    shade = mosaic.pars$shade, legend = FALSE, 
+                    gp = mosaic.pars$gp, gp_args = mosaic.pars$gp_args, 
+                    labeling_args = list(labels = c(TRUE, FALSE), 
+                                         tl_labels = c(ypos, FALSE), gp_labels = mosaic.pars$gp_labels, 
+                                         varnames = c(FALSE, FALSE), rot_labels = c(outer.rot, 
+                                                                                    outer.rot)))
+        } else {
+          strucplot(table(y, x), margins = c(0, 0, 0, 
+                                             0), newpage = FALSE, pop = FALSE, keep_aspect_ratio = FALSE, 
+                    shade = mosaic.pars$shade, legend = FALSE, 
+                    gp = mosaic.pars$gp, gp_args = mosaic.pars$gp_args, 
+                    labeling_args = list(labels = c(FALSE, TRUE), 
+                                         tl_labels = c(FALSE, !xpos), gp_labels = mosaic.pars$gp_labels, 
+                                         varnames = c(FALSE, FALSE), rot_labels = c(outer.rot, 
+                                                                                    outer.rot)))
+        }
+      }
+    }
+  }
+  boxplot.panel <- function(x, y, type, axis.pars, xpos, ypos, 
+                            xylim) {
+    xlim <- NULL
+    ylim <- NULL
+    old.color <- trellis.par.get("box.rectangle")$col
+    trellis.par.set(name = "box.rectangle", value = list(col = "black"))
+    trellis.par.set(name = "box.umbrella", value = list(col = "black"))
+    trellis.par.set(name = "box.dot", value = list(col = "black"))
+    trellis.par.set(name = "plot.symbol", value = list(col = "black"))
+    if (is.factor(x)) {
+      cat.labels <- levels(x)
+      k <- length(levels(x))
+      cat.var <- as.numeric(x)
+      cont.var <- y
+      horiz <- FALSE
+    } else {
+      cat.labels <- levels(y)
+      k <- length(levels(y))
+      cat.labels <- cat.labels[k:1]
+      cat.var <- k + 1 - as.numeric(y)
+      cont.var <- x
+      horiz <- TRUE
+    }
+    if (horiz) {
+      if (is.null(xylim)) {
+        xlim <- range(cont.var, na.rm = TRUE) + c(-buffer * 
+                                                    (max(cont.var, na.rm = TRUE) - min(cont.var, 
+                                                                                       na.rm = TRUE)), buffer * (max(cont.var, na.rm = TRUE) - 
+                                                                                                                   min(cont.var, na.rm = TRUE)))
+      } else {
+        xlim <- xylim
+      }
+      pushViewport(viewport(xscale = xlim, yscale = c(0.5, 
+                                                      max(cat.var, na.rm = TRUE) + 0.5)))
+      if (is.null(ypos)) 
+        cat.labels <- NULL
+      draw.axis(cont.var, cat.var, axis.pars, xpos, ypos, 
+                cat.labels, horiz, xlim, ylim)
+      popViewport(1)
+      pushViewport(viewport(xscale = xlim, yscale = c(0.5, 
+                                                      max(cat.var, na.rm = TRUE) + 0.5), clip = TRUE))
+      if (type == "boxplot") 
+        panel.bwplot(cont.var, cat.var, horizontal = horiz, 
+                     col = "black", pch = "|", gp = gpar(box.umbrella = list(col = "black")))
+      if (type == "stripplot") 
+        panel.stripplot(cont.var, cat.var, horizontal = horiz, 
+                        jitter.data = stripplot.pars$jitter, col = stripplot.pars$col, 
+                        cex = stripplot.pars$size, pch = stripplot.pars$pch)
+    }else {
+      if (is.null(xylim)) {
+        ylim <- range(cont.var, na.rm = TRUE) + c(-buffer * 
+                                                    (max(cont.var, na.rm = TRUE) - min(cont.var, 
+                                                                                       na.rm = TRUE)), buffer * (max(cont.var, na.rm = TRUE) - 
+                                                                                                                   min(cont.var, na.rm = TRUE)))
+      }else {
+        ylim <- xylim
+      }
+      pushViewport(viewport(yscale = ylim, xscale = c(0.5, 
+                                                      max(cat.var, na.rm = TRUE) + 0.5)))
+      if (is.null(xpos)) 
+        cat.labels <- NULL
+      draw.axis(cat.var, cont.var, axis.pars, xpos, ypos, 
+                cat.labels, horiz, xlim, ylim)
+      popViewport(1)
+      pushViewport(viewport(yscale = ylim, xscale = c(0.5, 
+                                                      max(cat.var, na.rm = TRUE) + 0.5), clip = TRUE))
+      if (type == "boxplot") 
+        panel.bwplot(cat.var, cont.var, horizontal = horiz, 
+                     col = "black", pch = "|", gp = gpar(box.umbrella = list(col = "black")))
+      if (type == "stripplot") 
+        panel.stripplot(cat.var, cont.var, horizontal = horiz, 
+                        jitter.data = stripplot.pars$jitter, col = stripplot.pars$col, 
+                        cex = stripplot.pars$size, pch = stripplot.pars$pch)
+    }
+    grid.rect(gp = gpar(fill = NULL))
+    popViewport(1)
+    trellis.par.set(name = "box.rectangle", value = list(col = old.color))
+    trellis.par.set(name = "box.umbrella", value = list(col = old.color))
+    trellis.par.set(name = "box.dot", value = list(col = old.color))
+    trellis.par.set(name = "plot.symbol", value = list(col = old.color))
+  }
+  diag.panel <- function(x, varname, diag.pars, axis.pars, 
+                         xpos, ypos, xylim) {
+    x <- x[!is.na(x)]
+    if (is.null(xylim)) {
+      xlim <- range(as.numeric(x), na.rm = TRUE) + c(-buffer * 
+                                                       (max(as.numeric(x), na.rm = TRUE) - min(as.numeric(x), 
+                                                                                               na.rm = TRUE)), buffer * (max(as.numeric(x), 
+                                                                                                                             na.rm = TRUE) - min(as.numeric(x), na.rm = TRUE)))
+    }else {
+      xlim <- xylim
+    }
+    ylim <- xlim
+    pushViewport(viewport(xscale = xlim, yscale = ylim))
+    draw.axis(as.numeric(x), as.numeric(x), axis.pars, xpos, 
+              ypos, NULL, NULL, xlim, ylim)
+    popViewport(1)
+    pushViewport(viewport(xscale = xlim, yscale = ylim, clip = TRUE))
+    if (!diag.pars$show.hist) {
+      grid.rect()
+      grid.text(varname, 0.5, 0.5, gp = gpar(fontsize = diag.pars$fontsize, 
+                                             fontface = 2))
+    }
+    popViewport(1)
+    if (diag.pars$show.hist) {
+      if (!is.factor(x)) {
+        pushViewport(viewport(xscale = xlim, yscale = c(0, 
+                                                        100), clip = TRUE))
+        panel.histogram(as.numeric(x), breaks = NULL, 
+                        type = "percent", col = diag.pars$hist.color)
+      }else {
+        pushViewport(viewport(xscale = c(min(as.numeric(x), 
+                                             na.rm = TRUE) - 1, max(as.numeric(x), na.rm = TRUE) + 
+                                           1), yscale = c(0, 100), clip = TRUE))
+        panel.barchart(1:length(table(x)), 100 * table(x)/sum(table(x)), 
+                       horizontal = FALSE, col = diag.pars$hist.color)
+      }
+      grid.text(varname, 0.5, 0.85, gp = gpar(fontsize = diag.pars$fontsize))
+      popViewport(1)
+    }
+  }
+  grid.newpage()
+  N <- ncol(x)
+  vp.main <- viewport(x = outer.margins$bottom, y = outer.margins$left, 
+                      width = unit(1, "npc") - outer.margins$right - outer.margins$left, 
+                      height = unit(1, "npc") - outer.margins$top - outer.margins$bottom, 
+                      just = c("left", "bottom"), name = "main", clip = "off")
+  pushViewport(vp.main)
+  for (i in 1:N) {
+    for (j in 1:N) {
+      if (diagonal == "default") 
+        labelj <- j
+      else labelj <- N - j + 1
+      x[is.infinite(x[, i]), i] <- NA
+      x[is.infinite(x[, j]), j] <- NA
+      vp <- viewport(x = (labelj - 1)/N, y = 1 - i/N, width = 1/N, 
+                     height = 1/N, just = c("left", "bottom"), name = as.character(i * 
+                                                                                     N + j))
+      pushViewport(vp)
+      vp.in <- viewport(x = 0.5, y = 0.5, width = 1 - gap, 
+                        height = 1 - gap, just = c("center", "center"), 
+                        name = paste("IN", as.character(i * N + j)))
+      pushViewport(vp.in)
+      xpos <- NULL
+      if (i == 1 && outer.labels$top[j]) {
+        xpos <- FALSE
+      }
+      if (i == N && outer.labels$bottom[j]) {
+        xpos <- TRUE
+      }
+      ypos <- NULL
+      if (j == N && outer.labels$right[i]) {
+        ypos <- FALSE
+      }
+      if (j == 1 && outer.labels$left[i]) {
+        ypos <- TRUE
+      }
+      if (!is.null(ypos) & diagonal != "default") {
+        ypos <- !ypos
+      }
+      if (i == j) {
+        diag.panel(x[, i], names(x)[i], diag.pars, axis.pars, 
+                   xpos, ypos, xylim)
+      }else {
+        if (is.factor(x[, i]) + is.factor(x[, j]) == 
+            1) {
+          if (i < j & upper.pars$conditional != "barcode") 
+            boxplot.panel(x[, j], x[, i], upper.pars$conditional, 
+                          axis.pars, xpos, ypos, xylim)
+          if (i > j & lower.pars$conditional != "barcode") 
+            boxplot.panel(x[, j], x[, i], lower.pars$conditional, 
+                          axis.pars, xpos, ypos, xylim)
+          if (i < j & upper.pars$conditional == "barcode") {
+            if (is.factor(x[, i])) {
+              barcode(split(x[, j], x[, i])[length(levels(x[, 
+                                                            i])):1], horizontal = TRUE, xlim = xylim, 
+                      labelloc = ypos, axisloc = xpos, labelouter = TRUE, 
+                      newpage = FALSE, fontsize = axis.pars$fontsize, 
+                      buffer = buffer, nint = barcode.pars$nint, 
+                      ptsize = barcode.pars$ptsize, ptpch = barcode.pars$ptpch, 
+                      bcspace = barcode.pars$bcspace, use.points = barcode.pars$use.points)
+            } else {
+              if (!is.null(ypos)) 
+                ypos <- !ypos
+              barcode(split(x[, i], x[, j])[length(levels(x[, 
+                                                            j])):1], horizontal = FALSE, xlim = xylim, 
+                      labelloc = xpos, axisloc = ypos, labelouter = TRUE, 
+                      newpage = FALSE, fontsize = axis.pars$fontsize, 
+                      buffer = buffer, nint = barcode.pars$nint, 
+                      ptsize = barcode.pars$ptsize, ptpch = barcode.pars$ptpch, 
+                      bcspace = barcode.pars$bcspace, use.points = barcode.pars$use.points)
+            }
+          }
+          if (i > j & lower.pars$conditional == "barcode") {
+            if (is.factor(x[, i])) {
+              barcode(split(x[, j], x[, i])[length(levels(x[, 
+                                                            i])):1], horizontal = TRUE, xlim = xylim, 
+                      labelloc = ypos, axisloc = xpos, labelouter = TRUE, 
+                      newpage = FALSE, fontsize = axis.pars$fontsize, 
+                      buffer = buffer, nint = barcode.pars$nint, 
+                      ptsize = barcode.pars$ptsize, ptpch = barcode.pars$ptpch, 
+                      bcspace = barcode.pars$bcspace, use.points = barcode.pars$use.points)
+            } else {
+              if (!is.null(ypos)) 
+                ypos <- !ypos
+              barcode(split(x[, i], x[, j])[length(levels(x[, 
+                                                            j])):1], horizontal = FALSE, xlim = xylim, 
+                      labelloc = xpos, axisloc = ypos, labelouter = TRUE, 
+                      newpage = FALSE, fontsize = axis.pars$fontsize, 
+                      buffer = buffer, nint = barcode.pars$nint, 
+                      ptsize = barcode.pars$ptsize, ptpch = barcode.pars$ptpch, 
+                      bcspace = barcode.pars$bcspace, use.points = barcode.pars$use.points)
+            }
+          }
+        }
+        if (is.factor(x[, i]) + is.factor(x[, j]) == 
+            0) {
+          if (i < j) 
+            type <- upper.pars$scatter
+          else type <- lower.pars$scatter
+          scatterplot.panel(x[, j], x[, i], type, scatter.pars, 
+                            axis.pars, xpos, ypos, xylim)
+        }
+        if (is.factor(x[, i]) + is.factor(x[, j]) == 
+            2) {
+          if (i < j) 
+            mosaic.panel(x[, j], x[, i], mosaic.pars, 
+                         axis.pars, xpos, ypos)
+          else mosaic.panel(x[, j], x[, i], mosaic.pars, 
+                            axis.pars, xpos, ypos)
+        }
+      }
+      popViewport(1)
+      upViewport()
+    }
+  }
+  popViewport()
+  if (whatis) 
+    whatis(x)
+}
+
+gpar <- function(...) {
+  gp <- validGP(list(...))
+  class(gp) <- "gpar"
+  gp
+}
+
+is.gpar <- function(x) {
+  inherits(x, "gpar")
+}
+
+print.gpar <- function(x, ...) {
+  print(unclass(x), ...)
+  invisible(x)
+}
+
+validGP <- function(gpars) {
+  # Check a (non-NULL) gpar is not of length 0
+  check.length <- function(gparname) {
+    if (length(gpars[[gparname]]) == 0)
+      stop(gettextf("'gpar' element '%s' must not be length 0", gparname),
+           domain = NA)
+  }
+  # Check a gpar is numeric and not NULL
+  numnotnull <- function(gparname) {
+    if (!is.na(match(gparname, names(gpars)))) {
+      if (is.null(gpars[[gparname]]))
+        gpars[[gparname]] <<- NULL
+      else {
+        check.length(gparname)
+        gpars[[gparname]] <<- as.numeric(gpars[[gparname]])
+      }
+    }
+  }
+  # fontsize, lineheight, cex, lwd should be numeric and not NULL
+  numnotnull("fontsize")
+  numnotnull("lineheight")
+  numnotnull("cex")
+  numnotnull("lwd")
+  numnotnull("lex")
+  # gamma defunct in 2.7.0
+  if ("gamma" %in% names(gpars)) {
+    warning("'gamma' 'gpar' element is defunct")
+    gpars$gamma <- NULL
+  }
+  numnotnull("alpha")
+  # col and fill are converted in C code
+  # BUT still want to check length > 0
+  if (!is.na(match("col", names(gpars)))) {
+    if (is.null(gpars$col))
+      gpars$col <- NULL
+    else
+      check.length("col")
+  }
+  if (!is.na(match("fill", names(gpars)))) {
+    if (is.null(gpars$fill))
+      gpars$fill <- NULL
+    else
+      check.length("fill")
+  }
+  # lty converted in C code
+  # BUT still want to check for NULL and check length > 0
+  if (!is.na(match("lty", names(gpars)))) {
+    if (is.null(gpars$lty))
+      gpars$lty <- NULL
+    else
+      check.length("lty")
+  }
+  if (!is.na(match("lineend", names(gpars)))) {
+    if (is.null(gpars$lineend))
+      gpars$lineend <- NULL
+    else
+      check.length("lineend")
+  }
+  if (!is.na(match("linejoin", names(gpars)))) {
+    if (is.null(gpars$linejoin))
+      gpars$linejoin <- NULL
+    else
+      check.length("linejoin")
+  }
+  # linemitre should be larger than 1
+  numnotnull("linemitre")
+  if (!is.na(match("linemitre", names(gpars)))) {
+    if (any(gpars$linemitre < 1))
+      stop("invalid 'linemitre' value")
+  }
+  # alpha should be 0 to 1
+  if (!is.na(match("alpha", names(gpars)))) {
+    if (any(gpars$alpha < 0 || gpars$alpha > 1))
+      stop("invalid 'alpha' value")
+  }
+  # font should be integer and not NULL
+  if (!is.na(match("font", names(gpars)))) {
+    if (is.null(gpars$font))
+      gpars$font <- NULL
+    else {
+      check.length("font")
+      gpars$font <- as.integer(gpars$font)
+    }
+  }
+  # fontfamily should be character
+  if (!is.na(match("fontfamily", names(gpars)))) {
+    if (is.null(gpars$fontfamily))
+      gpars$fontfamily <- NULL
+    else {
+      check.length("fontfamily")
+      gpars$fontfamily <- as.character(gpars$fontfamily)
+    }
+  }
+  # fontface can be character or integer;  map character to integer
+  # store value in font
+  # Illegal to specify both font and fontface
+  if (!is.na(match("fontface", names(gpars)))) {
+    if (!is.na(match("font", names(gpars))))
+      stop("must specify only one of 'font' and 'fontface'")
+    gpars$font <-
+      if (is.null(gpars$fontface)) NULL # remove it
+    else {
+      check.length("fontface")
+      if (is.numeric(gpars$fontface))
+        as.integer(gpars$fontface)
+      else
+        vapply(as.character(gpars$fontface),
+               function(ch) # returns integer
+                 switch(ch,
+                        plain = 1L,
+                        bold  = 2L,
+                        italic=, oblique = 3L,
+                        bold.italic = 4L,
+                        symbol= 5L,
+                        # These are Hershey variants
+                        cyrillic=5L,
+                        cyrillic.oblique=6L,
+                        EUC   = 7L,
+                        stop("invalid fontface ", ch)), 0L)
+    }
+  }
+  gpars
+}
+
+# Method for subsetting "gpar" objects
+`[.gpar` <- function(x, index, ...) {
+  if (length(x) == 0)
+    return(gpar())
+  maxn <- do.call("max", lapply(x, length))
+  newgp <- lapply(x, rep, length.out=maxn)
+  newgp <- lapply(X = newgp, FUN = "[", index, ...)
+  class(newgp) <- "gpar"
+  newgp
+}
+
+# possible gpar names
+# The order must match the GP_* values in grid.h
+.grid.gpar.names <- c("fill", "col", "gamma", "lty", "lwd", "cex",
+                      "fontsize", "lineheight", "font", "fontfamily",
+                      "alpha", "lineend", "linejoin", "linemitre",
+                      "lex",
+                      # Keep fontface at the end because it is never
+                      # used in C code (it gets mapped to font)
+                      "fontface")
+
+set.gpar <- function(gp) {
+  if (!is.gpar(gp))
+    stop("argument must be a 'gpar' object")
+  temp <- grid.Call(L_getGPar)
+  # gamma defunct in 2.7.0
+  if ("gamma" %in% names(gp)) {
+    warning("'gamma' 'gpar' element is defunct")
+    gp$gamma <- NULL
+  }
+  # Special case "cex" (make it cumulative)
+  if (match("cex", names(gp), nomatch=0L))
+    tempcex <- temp$cex * gp$cex
+  else
+    tempcex <- temp$cex
+  # Special case "alpha" (make it cumulative)
+  if (match("alpha", names(gp), nomatch=0L))
+    tempalpha <- temp$alpha * gp$alpha
+  else
+    tempalpha <- temp$alpha
+  # Special case "lex" (make it cumulative)
+  if (match("lex", names(gp), nomatch=0L))
+    templex <- temp$lex * gp$lex
+  else
+    templex <- temp$lex
+  # All other gpars
+  temp[names(gp)] <- gp
+  temp$cex <- tempcex
+  temp$alpha <- tempalpha
+  temp$lex <- templex
+  # Do this as a .Call.graphics to get it onto the base display list
+  grid.Call.graphics(L_setGPar, temp)
+}
+
+get.gpar <- function(names=NULL) {
+  if (is.null(names)) {
+    result <- grid.Call(L_getGPar)
+    # drop gamma
+    result$gamma <- NULL
+  } else {
+    if (!is.character(names) ||
+        !all(names %in% .grid.gpar.names))
+      stop("must specify only valid 'gpar' names")
+    # gamma deprecated
+    if ("gamma" %in% names) {
+      warning("'gamma' 'gpar' element is defunct")
+      names <- names[-match("gamma", names)]
+    }
+    result <- unclass(grid.Call(L_getGPar))[names]
+  }
+  class(result) <- "gpar"
+  result
+}
+
+# When editing a gp slot, only update the specified gpars
+# Assume gp is NULL or a gpar
+# assume newgp is a gpar (and not NULL)
+mod.gpar <- function(gp, newgp) {
+  if (is.null(gp))
+    gp <- newgp
+  else
+    gp[names(newgp)] <- newgp
+  gp
+}
+}
+
+
+
+#' template for Covariate plots
+#'
+#' @param data Data frame. Use the codes below as template 
+#' @keywords cov_plots()
+#' @export
+#' @examples
+cov_plots<-function(...){
+  library(reshape2)
+  library(plyr)
+  require(PCSmisc)
+  require(foreign)
+  require(Hmisc)
+  library(sas7bdat)
+  library(lhtool)
+  library(lhwordtool)
+  library(gridExtra)
+  library(ggplot2)
+  library(gridExtra)
+  require(reshape)
+  library(ggpubr)
+  cov_fn()
+  library(dplyr)
+  dir<-"//certara.com/sites/S02-Cary/Consulting/Projects/projects/"
+  cov1<-read.csv(file.path(dir,"dataset.csv"))
+  cov1<-cov1[cov1$mdv1==0,]
+
+  cov<-cov1[!duplicated(cov1$subject),]
+
+  r<-read.csv("Eta.csv")
+
+  head(r)
+  unique(r$Name)
+  names(r)<-tolower(names(r))
+  
+  head(cov)
+  #ID for for merging
+  id<-"id"
+  #Keep ETA
+  keta<-c("ndur","ntlag","nv","ncl")
+  #Keep Categorical COV
+  head(r)
+  #cov<-cov[cov$id%in%r$id,]
+  
+  cca<-c("study","sex","agecat","country","bmic", "ethnic","egfrcatn","phasen","oster","health","hepcat","corti","race","ethnic1","patient")
+  
+  #KEEP Cont COV
+  cco<-c("wt","bsa","age","bmi" ,"alb","alt","ast","bil","dose","uacr","bvas","egfr")
+  
+  cov<-chclass(cov,cca,"char")
+  
+  #ORDER BASELINE CATEGORICAL
+  one(cov,"race")
+  cov$race<-as.character(cov$race)
+  dat1<-reflag(cov,"sex",c("Female", "Male"),c("Female","Male"))
+  dat1<-reflag(dat1,"agecat",c(">=18 & <50", ">=50 & <65",">=65 & <75", ">=75"))
+  dat1<-reflag(dat1,"bmic",c("0","1","Missing"),c("<30 kg/m^2", ">=30 kg/m^2","Missing"))
+  dat1<-reflag(dat1,"ethnic1",c("Hispanic or Latino","Not Hispanic or Latino","Unknown","Not reported"),c("Hispanic or Latino","Not Hispanic or Latino","Unknown","Unknown"))
+  
+  dat1<-reflag(dat1,"race",c(" White","White"," Black Or African American","Black"," Asian","Asian"," Other"," White_ Native Hwaiian/Pacific Islander"),c("White","White","Black","Black","Asian","Asian","Other","Other"))
+  
+  dat1<-reflag(dat1,"patient",c("other", "AAV","IgAN"))
+  
+  dat1<-reflag(dat1,"hepcat",c("Healthy","Mild","Moderate","Others"))
+  
+  dat1<-reflag(dat1,"ethnic",c( "non-Japanese","Japanese", "Unknown"))
+  dat1<-reflag(dat1,"health",c(0,3,1,2),c("Other","Other","AAV","IgAN"))
+  dat1<-reflag(dat1,"egfrcatn",c("0","1", "2", "3" ),c("Normal","Mild", "Moderate", "Severe" ))
+  dat1<-reflag(dat1,"phasen",c("1","2" ),
+               c("Phase 1","Phase 2"))
+  dat1<-reflag(dat1,"oster",c("0","1"),c("No","Yes"))
+  dat1<-reflag(dat1,"corti",c("No","No with AAV","Yes"))
+  dat1<-chclass(dat1,cco,"num")
+  
+  dat2<-lhcut(dat1[!is.na(dat1$bmi),],"bmi",c(20,30))
+  dat3<-dat1[is.na(dat1$bmi),];dat3$bmicat<-"Missing"
+  dat1<-rbind(dat2,dat3)
+  
+
+  #GROUP CONTINUOUS COVARIATES
+  ###########RUN THE FOLLOWING LINES AS IS FOR MOST OF THE TIMES#############################
+  cov<-chclass(cov,cco,"num")
+  names(r)<-tolower(names(r))
+  
+  
+  eta<-r[,c(id,keta)]
+  cateta<-join(eta,dat1[,c(id,cca)],type="left")
+  nrow(eta);nrow(cateta)
+  head(cateta)
+  
+  
+  cat1<-lhlong(cateta,names(cateta[,(length(keta)+2):ncol(cateta)]))
+  
+  head(cat1)
+  
+  names(cat1)[names(cat1)=="variable"]<-"Covariate"
+  names(cat1)[names(cat1)=="value"]<-"Categorical"
+  cat1<-chclass(cat1,c("Covariate","Categorical"),"char")
+  cat1<-addvar(cat1,c("Covariate","Categorical"),keta[1],"length(x)","yes","count")
+  cat1$Cat1<-paste0(cat1$Categorical,"\n (n=",cat1$count,")")
+  
+  cat1<-lhlong(cat1,keta)
+  head(cat1)
+  cat1<-chclass(cat1,c("Covariate","Categorical","variable"),"char")
+  unique(cat1$Categorical)
+  head(cat1)
+  cat1$variable<-factor(cat1$variable,levels=keta)
+  
+  catnum<-addvar(nodup(cat1,c("Covariate","Categorical"),"var"),"Covariate","Categorical","length(x)","no","catnumber")
+  
+  for(i in cca[cca%in%catnum$Covariate[catnum$catnumber>0]]){
+    head(cateta)
+    dcat<-cat1[cat1$Covariate%in%i,]
+    ord<-sort(unique(cateta[,i]))
+    label<-nodup(dcat,c("Categorical","Cat1"),"var")
+    label$Categorical<-factor(label$Categorical,levels=ord)
+    lablel<-label$Cat1[order(label$Categorical)]
+    dcat$Cat1<-factor(dcat$Cat1,levels=lablel)
+
+    p<-ggplot(dcat,aes(x=Cat1,y=value))+
+      geom_boxplot(outlier.shape = NA)+
+      geom_jitter(position=position_jitter(0.1),col="grey")+
+      geom_hline(yintercept=0,linetype=2, color="red",size=1)+
+      ylab("Individual Random Effect")+xlab("")+
+      facet_wrap(~variable,scale="free")+
+      theme_bw()+
+      theme(axis.text.x = element_text(angle =45, hjust =0.5, vjust = 0.5))
+    ggsave(paste0("1_",i,"_boxplot.png"),p,width=5.7,height=5.7)
+  }
+  
+  
+  ########GPAIRS##########
+  coneta<-join(eta,cov[,c("id",cco)],type="left")
+
+  names(coneta)<-tolower(names(coneta))
+  cco<-tolower(cco)
+  cco<-cco
+  coneta<-chclass(coneta,cco,"num")
+  
+  congr<-NULL
+  congr[[1]]<-c("wt","age","bsa","bmi")
+  congr[[2]]<-c("alb","alt","ast","bil","dose")
+  congr[[3]]<-c("uacr","bvas","egfr")
+
+  for(i in 1:length(congr)){
+    png(file=paste0("scatter",i,".png"),width=768,height=768,pointsize = 16)
+    print(gpairs(x=coneta[,c(keta,congr[[i]])], 
+                 upper.pars = list(conditional = 'boxplot', scatter = 'loess'),
+                 lower.pars = list(scatter = 'stats',conditional = "barcode"),
+                 diag.pars = list(fontsize = 9, show.hist = TRUE, hist.color = "gray"),
+                 stat.pars =list(fontsize = 11, signif =F, verbose =T, use.color = TRUE, missing = 'missing', just = 'centre'),
+                 scatter.pars = list(pch = 20)))
+    dev.off()
+  }
+
+ 
+  # Distribution of ETA 
+  p1<-ggplot(r,aes(x=ntlag))+  geom_density(fill="royalblue3",col=NA,alpha=0.3)+
+    geom_histogram(aes(x=ntlag,y=..density..),fill=NA,col="black")+
+    geom_vline(xintercept=0,col="red",size=1.5,linetype = "dashed")
+  
+  p2<-ggplot(r,aes(x=ndur))+  geom_density(fill="royalblue3",col=NA,alpha=0.3,bin=60)+
+    geom_histogram(aes(x=ndur,y=..density..),fill=NA,col="black")+
+    geom_vline(xintercept=0,col="red",size=1.5,linetype = "dashed")
+  
+  p3<-ggplot(r,aes(x=ncl))+  geom_density(fill="royalblue3",col=NA,alpha=0.3,bin=60)+
+    geom_histogram(aes(x=ncl,y=..density..),fill=NA,col="black")+
+    geom_vline(xintercept=0,col="red",size=1.5,linetype = "dashed")
+  
+  p4<-ggplot(r,aes(x=nv))+  geom_density(fill="royalblue3",col=NA,alpha=0.3,bin=60)+
+    geom_histogram(aes(x=nv,y=..density..),fill=NA,col="black")+
+    geom_vline(xintercept=0,col="red",size=1.5,linetype = "dashed")
+  
+  library(gridExtra)
+  ggsave("ETA_CWRES_distribution.png",
+         ggarrange(p1,p2,p3,p4),dpi = 300, width =12, height = 8,units = c("in"))  
+
+}
+  
+  
+#' template for GOF
+#'
+#' @param data Data frame. Use the codes below as template 
+#' @keywords gof_plots()
+#' @export
+#' @examples 
+
+gof_plots<-function(...){
+  rm(list=ls())
+  library(reshape2)
+  library(plyr)
+  require(PCSmisc)
+  require(foreign)
+  require(Hmisc)
+  library(sas7bdat)
+  library(lhtool)
+  library(ggplot2)
+  library(lhwordtool)
+  library(gridExtra)
+  library(ggpubr)
+    ###########
+  #install.packages("qqplotr")
+  ###########
+  # Functions
+  qqplot.cwres <- function(dat, ...) {
+    ylim <-c(-10, 10)
+    xlim <-c(-4, 4)
+    xlab <- "Quantiles of Standard Normal"
+    ylab <- "Conditional Weighted Residuals"
+    with(dat, qqnorm(CWRES, ylim=ylim, xlim=xlim, xlab=xlab, ylab=ylab, ...))
+    with(dat, qqline(CWRES))
+    abline(a=0,b=1,col="red") #add the standard normal qqplot
+  }
+  
+  histogram.cwres <- function(dat, ...) {
+    ylim <-c(0, 0.55)
+    xlab <- "Conditional Weighted Residuals"
+    with(dat, hist(CWRES, ylim=ylim, xlab=xlab, main="", freq=FALSE, ...))
+    abline(v=0, lty=2, lwd=3, col="gray")
+    xs <- seq(-10, 140, len=100)
+    lines(xs, dnorm(xs), col="gray", lwd=3)
+  }
+  #------------------------------------------------------------------------------
+
+  dir<-"//certara.com/sites/S02-Cary/Consulting/Projects/projects/"
+  dat<-read.csv(file.path(dir,"dataset.csv"))
+  cov<-dat[!duplicated(dat$subject),]#read.csv(file.path(path,"Individual of Covariates_ximab.csv"))  
+  r<-read.csv("Residuals.csv")
+  dat<-dat[dat$mdv==0,]
+  unique(r$IVAR-dat$rtime)
+  nrow(dat)
+  nrow(r)
+  
+  
+  r$cwres<-r$CWRES
+  # CWRES distribution
+  png(file = "dist_QQ_CWRES.png", width = 8, height = 6, units = 'in', res = 300)
+  par(mfrow = c(1, 2))
+  qqplot.cwres(r)
+  histogram.cwres(r)
+  dev.off()
+  
+  IPRED<-"Individual Predicted Concentration (ng/mL)"
+  PRED<-"Population Predicted Concentration (ng/mL)"
+  DV<-"Observed Concentration (ng/mL)"
+  TAD<-"Time After Dose (h)"
+  RTIME<-"Time After First Dose (h)"
+  conc<-"Concentration (ng/mL)"
+  IVAR<-"Time After First Dose (h)"
+  CWRES<-"Conditional Weighted Residuals"
+  
+  r$IPRED<-exp(r$IPRED);r$DV<-exp(r$DV)
+  r$PRED<-exp(r$PRED)
+  
+  dem<-nodup(dat,"subject","all")
+
+  r1<-join(r,dem[,c("id","study","subject")],type="left")
+  
+  outl<-r1[abs(r1$CWRES)>4,c("study","subject","IVAR","TAD","DV","PRED","IPRED","CWRES")]
+  outl<-outl[order(outl$TAD),]
+  
+  exp<-dat[dat$subject%in%outl$subject[outl$PRED>1],c("subject","rtime","TAD","dv1")]
+  nrow(outl)/nrow(dat)*100
+  
+  exp<-left_join(exp,lhmutate(outl[outl$PRED>1,c("subject","IVAR","DV","CWRES")],c("DV=outlier","IVAR=rtime")))
+  write.csv(outl,"Outliers.csv")
+  
+
+  limx<-limy<-range(c(r1$IPRED,r1$DV))
+  limx2<-limy2<-range(c(r1$PRED,r1$DV))
+  limx1<-limy1<-c(0.001,10000)
+  
+  r1$STUDYID<-as.character(r1$study)
+
+  
+  library(RColorBrewer)
+  cols<-brewer.pal(n =6, name = 'Paired')
+  cols<-c("#A6CEE3", "#1F78B4", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "black", "#FF7F00")
+  #cols<-c("grey","green","red","black","blue")
+  
+  p1<-ggplot(r1,aes(x=IPRED,y=DV))+
+    geom_point(aes(col=STUDYID))+
+    scale_x_continuous(limits=limy,labels = function(x) format(x, scientific =F))+
+    scale_y_continuous(limits=limx,labels = function(x) format(x, scientific =F))+
+    xlab(IPRED)+ylab(DV)+
+    geom_abline(slope=1,size=1)+
+    geom_hline(aes(yintercept=0,col="Identity"))+
+    geom_smooth(aes(col="LOESS"),se=F,span=1,size=1)+
+    
+    scale_colour_manual(name="",values=cols, 
+                        guide = "legend") + 
+    theme_bw()+
+    guides(colour=guide_legend(override.aes=list(linetype=c(rep(0,6),1,1),shape=c(rep(16,6),NA,NA))))+
+    theme(axis.text.y = element_text(angle = 90, hjust =0.5, vjust = 0.5),legend.position=c(0.8,0.2),legend.box.margin=NULL, legend.background = element_rect(fill="transparent"))
+  
+  
+  p2<-ggplot(r1,aes(x=IPRED,y=DV))+
+    #geom_point(col="grey")+
+    geom_point(aes(col=factor(STUDYID)))+
+    scale_y_log10(limits =limx,breaks = scales::trans_breaks("log10", function(x) 10^x),
+                  labels = scales::trans_format("log10", scales::math_format(10^.x)))+
+    scale_x_log10(limits =limx , breaks = scales::trans_breaks("log10", function(x) 10^x),
+                  labels = scales::trans_format("log10", scales::math_format(10^.x)))+
+    annotation_logticks(sides = "lb") +
+    geom_abline(slope=1)+
+    xlab(IPRED)+ylab(DV)+
+    geom_abline(slope=1,size=1)+
+    geom_hline(aes(yintercept=0,col="Identity"))+
+    geom_smooth(aes(col="LOESS"),se=F,span=1,size=1)+
+    
+    scale_colour_manual(name="",values=cols, 
+                        guide = "legend") + 
+    theme_bw()+
+    guides(colour=guide_legend(override.aes=list(linetype=c(rep(0,6),1,1),shape=c(rep(16,6),NA,NA))))+
+    theme(axis.text.y = element_text(angle = 90, hjust =0.5, vjust = 0.5),legend.position=c(0.8,0.2),legend.box.margin=NULL, legend.background = element_rect(fill="transparent"))
+  
+  p1a<-ggplot(r1,aes(x=PRED,y=DV))+
+    #geom_point(col="grey")+
+    geom_point(aes(col=factor(STUDYID)))+
+    scale_x_continuous(limits=limy2,labels = function(x) format(x, scientific =F))+
+    scale_y_continuous(limits=limx2,labels = function(x) format(x, scientific =F))+
+    xlab(PRED)+ylab(DV)+
+    geom_abline(slope=1,size=1)+
+    geom_hline(aes(yintercept=0,col="Identity"))+
+    geom_smooth(aes(col="LOESS"),se=F,span=1,size=1)+
+    
+    scale_colour_manual(name="",values=cols, 
+                        guide = "legend") + 
+    theme_bw()+
+    guides(colour=guide_legend(override.aes=list(linetype=c(rep(0,6),1,1),shape=c(rep(16,6),NA,NA))))+
+    theme(axis.text.y = element_text(angle = 90, hjust =0.5, vjust = 0.5),legend.position=c(0.8,0.2),legend.box.margin=NULL, legend.background = element_rect(fill="transparent"))
+  
+  
+  p2a<-ggplot(r1,aes(x=PRED,y=DV))+
+    #geom_point(ae(col="grey")+
+    geom_point(aes(col=factor(STUDYID)))+
+    scale_y_log10(limits =limx2,breaks = scales::trans_breaks("log10", function(x) 10^x),
+                  labels = scales::trans_format("log10", scales::math_format(10^.x)))+
+    scale_x_log10(limits =limx2 , breaks = scales::trans_breaks("log10", function(x) 10^x),
+                  labels = scales::trans_format("log10", scales::math_format(10^.x)))+
+    annotation_logticks(sides = "lb") +
+    geom_abline(slope=1)+
+    xlab(PRED)+ylab(DV)+
+    geom_abline(slope=1,size=1)+
+    geom_hline(aes(yintercept=0,col="Identity"))+
+    geom_smooth(aes(col="LOESS"),se=F,span=1,size=1)+
+    
+    scale_colour_manual(name="",values=cols, 
+                        guide = "legend") + 
+    theme_bw()+
+    guides(colour=guide_legend(override.aes=list(linetype=c(rep(0,6),1,1),shape=c(rep(16,6),NA,NA))))+
+    theme(axis.text.y = element_text(angle = 90, hjust =0.5, vjust = 0.5),legend.position=c(0.8,0.2),legend.box.margin=NULL, legend.background = element_rect(fill="transparent"))
+  
+  ggsave("GOF.png",
+         ggarrange(p1,p1a,p2,p2a, ncol=2, nrow=2, common.legend = TRUE, legend="bottom"),dpi = 300, width =12, height = 8,units = c("in"))
+  
+  #######################################################################################
+  #cols<-brewer.pal(n =9, name = 'Paired')
+  cols<-c("#A6CEE3", "#1F78B4", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "black", "#FF7F00","#CAB2D6")
+  
+  p3a<-ggplot(r1,aes(x=TAD,y=DV))+
+    geom_point(aes(color=STUDYID))+
+    #geom_point(aes(col=factor(STUDYID)))+
+    xlab(TAD)+ylab(conc)+
+    #geom_abline(slope=1)+
+    scale_y_log10(limits =limx,breaks = scales::trans_breaks("log10", function(x) 10^x),labels = scales::trans_format("log10", scales::math_format(10^.x)))+
+    
+    scale_x_continuous(breaks =seq(0,1500,7*24),
+                       labels =seq(0,1500,7*24))+
+    annotation_logticks(sides = "l") +
+    geom_smooth(aes(y=DV,col="LOESS_OBS"),se=F)+
+    geom_smooth(aes(y=IPRED,col="LOESS_IPRED"),se=F)+
+    geom_smooth(aes(y=PRED,col="LOESS_PRED"),se=F)+
+    scale_colour_manual(name="",values=cols, 
+                        guide = "legend") + 
+    theme_bw()+
+    guides(colour=guide_legend(override.aes=list(linetype=c(rep(0,6),1,1,1),shape=c(rep(16,6),NA,NA,NA))))+
+    theme(axis.text.y = element_text(angle = 90, hjust =0.5, vjust = 0.5),legend.position=c(0.8,0.2),legend.box.margin=NULL, legend.background = element_rect(fill="transparent"))
+  
+  p3b<-ggplot(r1,aes(x=TAD,y=DV))+
+    geom_point(aes(color=STUDYID))+
+    #geom_point(aes(col=factor(STUDYID)))+
+    xlab(TAD)+ylab("Concentration (ng/mL)")+
+    #geom_abline(slope=1)+
+    scale_x_continuous(breaks =seq(0,1500,7*24),
+                       labels =seq(0,1500,7*24))+
+    #scale_y_continuous(limits=limx,breaks =seq(0,10^6,10^5),labels = seq(0,10))+
+    geom_smooth(aes(y=DV,col="LOESS_OBS"),se=F)+
+    geom_smooth(aes(y=IPRED,col="LOESS_IPRED"),se=F)+
+    geom_smooth(aes(y=PRED,col="LOESS_PRED"),se=F)+
+    scale_colour_manual(name="",values=cols, 
+                        guide = "legend") + 
+    theme_bw()+
+    guides(colour=guide_legend(override.aes=list(linetype=c(rep(0,6),1,1,1),shape=c(rep(16,6),NA,NA,NA))))+
+    theme(axis.text.y = element_text(angle = 0, hjust =0.5, vjust = 0.5),legend.position=c(0.8,0.2),legend.box.margin=NULL, legend.background = element_rect(fill="transparent"))
+  
+  
+  p3c<-ggplot(r1,aes(x=TAD,y=DV))+
+    geom_point(aes(color=STUDYID))+
+    #geom_point(aes(col=factor(STUDYID)))+
+    xlab(TAD)+ylab(conc)+
+    #geom_abline(slope=1)+
+    scale_y_log10(limits =limx,breaks = scales::trans_breaks("log10", function(x) 10^x),labels = scales::trans_format("log10", scales::math_format(10^.x)))+
+    scale_x_log10()+
+    #scale_x_continuous()+
+    annotation_logticks(sides = "l") +
+    geom_smooth(aes(y=DV,col="LOESS_OBS"),se=F)+
+    geom_smooth(aes(y=IPRED,col="LOESS_IPRED"),se=F)+
+    geom_smooth(aes(y=PRED,col="LOESS_PRED"),se=F)+
+    scale_colour_manual(name="",values=cols, 
+                        guide = "legend") +
+    theme_bw()+
+    guides(colour=guide_legend(override.aes=list(linetype=c(rep(0,6),1,1,1),shape=c(rep(16,6),NA,NA,NA))))+
+    theme(axis.text.y = element_text(angle = 90, hjust =0.5, vjust = 0.5),legend.position=c(0.8,0.2),legend.box.margin=NULL, legend.background = element_rect(fill="transparent"))
+  
+  ggsave("profile.png",
+         ggarrange(p3a,p3b,p3c, ncol=2, nrow=2, common.legend = TRUE, legend="bottom"),dpi = 300, width =12, height = 8,units = c("in"))
+  
+  ########################################################################################
+  
+  #cols<-c("grey","black","blue")
+  cols<-c("#A6CEE3", "#1F78B4", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "black", "#FF7F00")
+  p4<-ggplot(r1,aes(x=PRED,y=CWRES))+
+    geom_point(aes(col=factor(STUDYID)))+
+    xlab(PRED)+ylab(CWRES)+
+    geom_hline(aes(yintercept=0, col="Line_zero")) +
+    geom_smooth(aes(col="LOESS"),se=F)+
+    scale_x_continuous(labels = function(x) format(x, scientific =F))+
+    scale_y_continuous(limits=c(-6,6),breaks=seq(-6,6,2))+
+    theme_bw()+
+    scale_colour_manual(name="Observed",values=cols, 
+                        guide = "legend") + 
+    guides(colour=guide_legend(override.aes=list(linetype=c(rep(0,6),1,1),shape=c(rep(16,6),NA,NA))))+
+    theme(legend.position=c(0.8,0.2),legend.box.margin=NULL, legend.background = element_rect(fill="transparent"))
+  
+  p4a<-ggplot(r1,aes(x=IVAR,y=CWRES))+
+    geom_point(aes(col=factor(STUDYID)))+
+    xlab(IVAR)+ylab(CWRES)+
+    geom_hline(aes(yintercept=0, col="Line_zero")) +
+    geom_smooth(aes(col="LOESS"),se=F,span=1)+
+    # scale_x_continuous(labels = function(x) format(x, scientific =F))+
+    scale_x_continuous(breaks =seq(0,1500,7*24),
+                       labels =seq(0,1500,7*24))+
+    scale_y_continuous(limits=c(-6,6),breaks=seq(-6,6,2))+
+    theme_bw()+
+    scale_colour_manual(name="Observed",values=cols, 
+                        guide = "legend") + 
+    guides(colour=guide_legend(override.aes=list(linetype=c(rep(0,6),1,1),shape=c(rep(16,6),NA,NA))))+
+    theme(legend.position=c(0.8,0.2),legend.box.margin=NULL, legend.background = element_rect(fill="transparent"))
+  
+  p4b<-ggplot(r1,aes(x=TAD,y=CWRES))+
+    geom_point(aes(col=factor(STUDYID)))+
+    xlab(TAD)+ylab(CWRES)+
+    geom_hline(aes(yintercept=0, col="Line_zero")) +
+    geom_smooth(aes(col="LOESS"),se=F,span=1)+
+    # scale_x_continuous(labels = function(x) format(x, scientific =F))+
+    scale_x_continuous(breaks =seq(0,1500,7*24),
+                       labels =seq(0,1500,7*24))+
+    scale_y_continuous(limits=c(-6,6),breaks=seq(-6,6,2))+
+    theme_bw()+
+    scale_colour_manual(name="Observed",values=cols, 
+                        guide = "legend") + 
+    guides(colour=guide_legend(override.aes=list(linetype=c(rep(0,6),1,1),shape=c(rep(16,6),NA,NA))))+
+    theme(legend.position=c(0.8,0.2),legend.box.margin=NULL, legend.background = element_rect(fill="transparent"))
+
+  ggsave("CWRES.png",
+         ggarrange(p4,p4a,p4b, ncol=1, nrow=3, common.legend = TRUE, legend="bottom"),dpi = 300, width =12, height = 8,units = c("in"))
+  
+}
+
+#' template for VPC
+#'
+#' @param data Data frame Use the codes below as template
 #' @keywords vpc_plots()
 #' @export
 #' @examples 
