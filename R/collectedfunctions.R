@@ -932,7 +932,6 @@ mod.gpar <- function(gp, newgp) {
 }
 
 
-
 #' template for Covariate plots
 #'
 #' @param data Data frame. Use the codes below as template 
